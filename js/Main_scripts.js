@@ -558,7 +558,7 @@ document.addEventListener("DOMContentLoaded", function () {
     //This section has to be modified for the control of robot 1 and the control of both robots.
     document.addEventListener("keydown", function (event) {
 
-      // This if statement will check if the user is typing in the search bar making sure the text will be visible if the user is typing in the search bar
+      // This if statement will make sure that users are able to type in the search bar without interferance.
       if (event.target.tagName.toLowerCase() === "input" || event.target.tagName.toLowerCase() === "textarea")
       {
         return;
