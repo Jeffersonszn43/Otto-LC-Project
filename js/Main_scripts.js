@@ -129,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
     {
       connectButton.addEventListener("click", async function () {
         try {
-          bluetoothDevice = [];
 
           if (window.location.href.includes("index.html"))
           {
@@ -191,27 +190,24 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is to make sure that the web application is connected with Otto before any modes can be used.
     function bluetoothCheck ()
     {
-      if (!bluetoothDevice)
+      if (!bluetoothDevice || bluetoothDevice.length === 0)
       {
-        if (bluetoothDevice.length === 0)
-        {
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
-            }
-          });
-          Toast.fire({
-            icon: "warning",
-            title: "You must be connected to one or both Otto robots to select a mode!"
-          });
-          return false;
-        }
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "error",
+          title: "You must be connected to one or both Otto robots to select a mode!"
+        });
+        return false;
       }
       return true;
     }
@@ -222,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Here we are making sure that the user is connected to the robots via Bluetooth
       // if (!bluetoothCheck())
       // {
-      //   return;
+        // return;
       // }
 
       hide ();
@@ -668,22 +664,22 @@ document.addEventListener("DOMContentLoaded", function () {
     {
       if (bluetoothDevice.length === 0)
       {
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
-            }
-          });
-          Toast.fire({
-            icon: "warning",
-            title: "You must be connected to the robots first!"
-          });
-          return;
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "warning",
+          title: "You must be connected to the robots first!"
+        });
+        return;
       }
       // replace this later on when the software for the robots are done
       bluetoothDevice.forEach(device =>{
