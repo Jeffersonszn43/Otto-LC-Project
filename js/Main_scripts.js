@@ -695,8 +695,8 @@ document.addEventListener("DOMContentLoaded", function () {
         // The idea is that different robot statuses will be displayed based on the parameters below
         switch (parameter)
         {
-          case "fall":
-            document.getElementById("fallStatus").textContent = "Fall Status: " + value;
+          case "movement":
+            document.getElementById("movementStatus").textContent = "Movement Status: " + value;
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
@@ -719,9 +719,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // The idea is that different robot statuses will be displayed based on the parameters below for both of the robots
         switch (parameter)
         {
-          case "fall":
-            document.getElementById("fallStatus").textContent = "Fall Status: " + value;
-            document.getElementById("fall_Status").textContent = "Fall Status: " + value;
+          case "movement":
+            document.getElementById("movementStatus").textContent = "Movement Status: " + value;
+            document.getElementById("movement_Status").textContent = "Movement Status: " + value;
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
@@ -747,7 +747,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Here is where status updates coming from the robot would happen and be displayed on the webpage. Need to update this when we have the software done for the robots.
     setInterval(() => {
-      updateStatus("fall", "Otto did not fall over");
+      updateStatus("movement", "Otto is moving");
       updateStatus("emotion", "Happy");
       updateStatus("light", "Bright");
       updateStatus("object", "No object detected");
