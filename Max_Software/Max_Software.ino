@@ -1,0 +1,65 @@
+// Written by: Corey Chang and Jefferson Charles
+// This program is responsible for providing all of the controls logic for Max (Robot 1) to interact with the web application.
+// Note: Have to install the Adafruit SSD1306, MPU6050, OttoDIYLib, and the EspSoftwareSerial (ESP Board has to be version: 2.0.17, in the board manager) libraries.
+
+//Here are the libraries needed to control Max (Robot 1).
+#include <Otto.h>
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+#include <MPU6050.h>
+
+
+Otto Max;   // This variable will be the object used for the movement commnds.
+
+//Here are the servo and buzzer connection pins. 
+#define LeftLeg 
+#define RightLeg 
+#define LeftFoot 
+#define RightFoot 
+#define Buzzer 
+
+// Pins for the Ultrasonic Distance Sensor (HC-SR04)
+#define Triggerpin
+#define Echopin
+
+// Pins for the OLED display (ssd 1306)
+#define oled_scl
+#define oled_sda
+
+// Pins for the Gyroscope/Accelorometer (GY-521-MPU-6050)
+#define gyro_accel_scl
+#define gyro_accel_sda
+
+//Pin for the light sensor (Photoresistor)
+#define light_sensor 
+
+// Here are the UUIDs of the BLE service and characteristic.
+#define service_uuid  "12345678-1234-5678-1234-56789abcdef0"
+#define characteristic_uuid  "87654321-4321-6789-4321-0987654321fe"
+
+// Here are the global objects for the BLE service and characteristic
+BLEServer *pserver = NULL;
+BLECharacteristic *pcharacteristic = NULL;
+
+void setup() 
+{
+  //put your setup code here, to run once:
+  Max.init(LeftLeg, RightLeg, LeftFoot, RightFoot, true, Buzzer);
+  Max.home();  // Puts the servos in the home position. 
+
+}
+
+void loop() 
+{
+  //put your main code here, to run repeatedly:
+  Max.walk(4, 2000, 1);   // Otto will walk 2 steps forward forward for 2000ms.
+  delay(1000);  // delay is in milliseconds.
+  Max.walk(4, 2000, -1);  // Otto will walk 2 steps backward for 2000ms.
+  delay(1000);
+  Max.moonwalker(4, 2000, 25, 1);
+  Max.home(); // To reset the servos.
+}
+
