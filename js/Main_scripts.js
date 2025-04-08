@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentMode = "none";   // Possibly have to change later when robot software is done
     let bluetoothDevice = [];  // This variable will store the connected Bluetooth device
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
+    
+
 
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
@@ -61,9 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],
+              optionalServices: ["battery_service"],  // Service UUID of Robot 1 (Max)
             });
             bluetoothDevice.push(first_device);
+
+
             firstconnectionStatus.textContent = "Connection Status: Connected to Robot 1";
 
             const Toast = Swal.mixin({
@@ -94,10 +98,12 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           let second_device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
-            optionalServices: ["battery_service"],
+            optionalServices: ["battery_service"],  // Service UUID for Robot 2 (Jerry).
   
           });
           bluetoothDevice.push(second_device);
+
+
           secondconnectionStatus.textContent = "Connection Status: Connected to Robot 2";
 
           const Toast = Swal.mixin({
@@ -139,6 +145,22 @@ document.addEventListener("DOMContentLoaded", function () {
             bluetoothDevice.push(first_device);
             connectionStatus.textContent = "Connection Status: Connected to Robot 1";
 
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+              }
+            });
+            Toast.fire({
+              icon: "success",
+              title: "Connected to Robot 1!"
+            });
+
           }
           else if (window.location.href.includes("Robot2.html"))
           {
@@ -149,22 +171,23 @@ document.addEventListener("DOMContentLoaded", function () {
             bluetoothDevice.push(second_device);
             connectionStatus.textContent = "Connection Status: Connected to Robot 2";
 
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+              }
+            });
+            Toast.fire({
+              icon: "success",
+              title: "Connected to Robot 2!"
+            });
+
           }
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
-            }
-          });
-          Toast.fire({
-            icon: "success",
-            title: "Connected to: " + bluetoothDevice.map(device => device.name).join(", ")
-          });
 
         }
 
@@ -551,7 +574,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     });
 
-    //This section has to be modified for the control of robot 1 and the control of both robots.
+    // Here is where we have the direct control options for users to control both robots
     document.addEventListener("keydown", function (event) {
 
       // This if statement will make sure that users are able to type in the search bar without interferance.
@@ -559,6 +582,7 @@ document.addEventListener("DOMContentLoaded", function () {
       {
         return;
       }
+      
 
       // This if statement will allow users to control the robots with the "WSAD" or arrow keys depending on the robot they want to control. Users will also be able to have control of both robots too.
       if (window.location.href.includes("index.html"))
@@ -572,16 +596,16 @@ document.addEventListener("DOMContentLoaded", function () {
         switch (event.key.toLowerCase())
         {
           case "w":
-            sendCommand("forward");
+            sendCommand("forward", 1);
             break;
           case "a":
-            sendCommand("left");
+            sendCommand("left", 1);
             break;
           case "s":
-            sendCommand("stop");
+            sendCommand("stop", 1);
             break;
           case "d":
-            sendCommand("right");
+            sendCommand("right", 1);
             break;
           default:
             break;
@@ -603,16 +627,16 @@ document.addEventListener("DOMContentLoaded", function () {
         switch (event.key)
         {
           case "ArrowUp":
-            sendCommand("forward");
+            sendCommand("forward", 2);
             break;
           case "ArrowLeft":
-            sendCommand("left");
+            sendCommand("left", 2);
             break;
           case "ArrowDown":
-            sendCommand("stop");
+            sendCommand("stop", 2);
             break;
           case "ArrowRight":
-            sendCommand("right");
+            sendCommand("right", 2);
             break;
           default:
             break;
@@ -631,25 +655,36 @@ document.addEventListener("DOMContentLoaded", function () {
         
         switch (event.key)
         {
+          //Controls for Robot 1
           case "w":
           case "W":
-          case "ArrowUp":
-            sendCommand("forward");
+            sendCommand("forward", 1);
             break;
           case "a":
           case "A":
-          case "ArrowLeft":
-            sendCommand("left");
+            sendCommand("left", 1);
             break;
           case "s":
-          case "S":
-          case "ArrowDown": 
-            sendCommand("stop");
+          case "S": 
+            sendCommand("stop", 1);
             break;
           case "d":
           case "D":
+            sendCommand("right", 1);
+            break;
+          
+          // Controls for Robot 2
+          case "ArrowUp":
+            sendCommand("forward", 2);
+            break;
+          case "ArrowLeft":
+            sendCommand("left", 2);
+            break;
+          case "ArrowDown":
+            sendCommand("stop", 2);
+            break;
           case "ArrowRight":
-            sendCommand("right");
+            sendCommand("right", 2);
             break;
           default:
             break;
@@ -660,7 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // This function is responsible for sending the user commands via Bluetooth to the robots
-    function sendCommand(command) 
+    function sendCommand(command, Num_robot) 
     {
       if (bluetoothDevice.length === 0)
       {
@@ -681,10 +716,30 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         return;
       }
+
+      // Here is logic that will help to send the appropriate direct control commands to the robots.
+      try {
+
+        if (Num_robot === 1)
+        {
+          //robot1Characteristic.writeValue(data);
+          console.log("Sent movement command to Robot 1: ", command);
+        }
+        else if(Num_robot === 2)
+        {
+          //robot2Characteristic.writeValue(data);
+          console.log("Sent movement command to Robot 2: ", command);
+        }
+      }
+      catch (err)
+      {
+        console.error("Command failed to send: ", err);
+      }
+
       // replace this later on when the software for the robots are done
-      bluetoothDevice.forEach(device =>{
-        console.log("The command was sent to " + device.name + ":", command);
-      });
+      // bluetoothDevice.forEach(device =>{
+        // console.log("The command was sent to " + device.name + ":", command);
+      // });
     }
     
     // Here is the data that will be displayed on the webpage that displays different status updates for the robots
