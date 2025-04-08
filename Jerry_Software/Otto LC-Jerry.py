@@ -3,8 +3,7 @@
 
 # Here are the libraries needed for the program
 import otto9, time
-from machine import Pin, PWM, ADC, I2C, SPI
-import max7219
+from machine import Pin, ADC, time_pulse_us
 import bluetooth
 import struct
 
@@ -13,7 +12,7 @@ LeftLeg = 3
 RightLeg = 7
 LeftFoot = 12
 RightFoot = 10
-Buzzer =
+Buzzer = 20
 
 # Here is where we are initializing and defining all of the pins of the sensors on the robot
 LDR_Pin = ADC(28)  # ADC pin for the Photoresistor.
@@ -21,19 +20,17 @@ LDR_Pin = ADC(28)  # ADC pin for the Photoresistor.
 Trig_Pin = Pin(22, Pin.OUT) # Trigger pin on UltraSonic Distance Sensor.
 Echo_Pin = Pin(21, Pin.IN)  # Echo pin on the UltraSonic Distance Sensor.
 
-# Here we are setting up the SPI pins on the 8x8 LED Matrix
-spi = SPI(0, baudrate=10000000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19))
-cs = Pin(17, Pin.OUT)
+# Here we are initializing the 8x8 LED Matrix that will be used for displaying the different emotions of the robot.
+Din = 19
+SCLK = 18
+CS = 17
 
-matrix = max7219.Matrix8x8(spi, cs, 1)
-
-# Here we are initially clearing the LED Matrix display
-matrix.fill(0)
-matrix.show()
+# Here is how the orientation will go on the 8x8 LED Matrix. This will allow the LEDs on the Matrix to display things in a normal orientation on the robot.
+Orientation = 3
 
 # Here is where we are initializing the Otto LC robot (Jerry)
 Jerry = otto9.Otto9()
-Jerry.init(3, 7, 12, 10, True, Buzzer, 22, 21, 28)
+Jerry.init(3, 7, 12, 10, True, Buzzer, Trig_Pin, Echo_Pin, Din)
 Jerry.home()
 
 # Here is where we are setting up BLE for the robot
@@ -49,7 +46,8 @@ def adv_payload(name):
 
 ble.gap_advertise(100, adv_payload(DEVICE_NAME))
 
-# Here are the functions that will be responsible for getting various sensor data
+
+# Here are the functions that will be responsible for the functionalities of the sensors.
 def light_levels():
     sensor_value = LDR_Pin.read_u16()  # Here we are reading the ADC value (0 - 65535)
     
@@ -86,30 +84,32 @@ def get_distance ():
 
 def status_emotions(emotion):
     # add logic on how the emotions will be displayed depending on the mode the robot is in
-    # Here we are displaying different patterns that will correlate to emotions that Jerry will feel on the LED Matrix
-    
-    # Happy
-    matrix.pixel(1,1,1)
-    matrix.pixel(6,1,1)
-    matrix.pixel(3,5,1)
-    matrix.pixel(4,5,1)
-    
-    # Sad
-    matrix.pixel(1,1,1)
-    matrix.pixel(6,1,1)
-    matrix.pixel(3,6,1)
-    matrix.pixel(4,6,1)
-    
-    # Surprised (For when user does an interrupt)
-    matrix.pixel(2,2,1)
-    matrix.pixel(5,2,1)
-    matrix.pixel(3,4,1)
-    matrix.pixel(4,4,1)
-    
-    matrix.show()
+    if emotion == "happy":
+        Jerry.putMouth(10)
+    elif emotion == "sad":
+        Jerry.putMouth(22)
+    elif emotion == "surprise":
+        Jerry.putMouth(14)
+    elif emotion == "confused":
+        Jerry.putMouth(20)
+    elif emotion == "angry":
+        Jerry.putMouth(30)
     
 
 # Add function for the buzzer to also display a robotic noise that will play sounds depending on the mode the robot is in
+def buzzer_status (status_noise):
+    if status_noise == "happy":
+        Jerry.sing(7)
+    elif status_noise == "sad":
+        Jerry.sing(10)
+    elif status_noise == "surprise":
+        Jerry.sing(2)
+    elif status_noise == "confused":
+        Jerry.sing(11)
+    elif status_noise == "angry":
+        Jerry.sing(4)
+    elif status_noise == "connected":
+        Jerry.sing(0)
     
 # Add functions for the different modes on the web application
 
