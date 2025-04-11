@@ -26,12 +26,13 @@ Din = 19
 SCLK = 18
 CS = 17
 
-# Here is how the orientation will go on the 8x8 LED Matrix. This will allow the LEDs on the Matrix to display things in a normal orientation on the robot.
+# This is the orientation on the 8x8 LED Matrix. This will allow the LEDs on the Matrix to display things in a normal orientation on the robot.
 Orientation = 3
 
-# Here is where we are initializing the Otto LC robot (Jerry)
+# Here is where we are initializing the Otto LC robot (Jerry) along with the 8x8 LED Matrix
 Jerry = otto9.Otto9()
 Jerry.init(LeftLeg, RightLeg, LeftFoot, RightFoot, True, Buzzer, Trig_Pin, Echo_Pin, Din)
+Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
 # Add a part here that makes Jerry do the connected buzzer sound when the user connects to Jerry
@@ -86,7 +87,7 @@ def light_levels():
     # Here we are computing the deazone that will be 5% from the sensor value of the light sensor
     deadzone = int(sensor_value * 0.05)
     
-    # Here we will show if the room is dark or not
+    # Here we are observing the light levels of the room Jerry is in
     return "It is dark in this room!" if sensor_value >= 56 + deadzone elif sensor_value <= 45 - deadzone "This room is bright!"
     
 
@@ -109,36 +110,35 @@ def get_distance ():
     distance = (duration * 0.0343) / 2
     return distance
 
+# Function responsible for displaying the emotions of the robot on the 8x8 LED Matrix
 def status_emotions(emotion):
-    # add logic on how the emotions will be displayed depending on the mode the robot is in
-    if emotion == "happy":
+    if emotion == "happy": 
         Jerry.putMouth(10)
-    elif emotion == "sad":
-        Jerry.putMouth(22)
-    elif emotion == "surprise":
+    elif emotion == "surprise": 
         Jerry.putMouth(14)
-    elif emotion == "confused":
-        Jerry.putMouth(20)
-    elif emotion == "angry":
+    elif emotion == "happyopen": 
+        Jerry.putMouth(11)
+        Jerry.playGesture(1)
+    elif emotion == "angry":  
         Jerry.putMouth(30)
+    elif emotion == "smallsurprise": 
+        Jerry.putMouth(15)
     
 
-# Add function for the buzzer to also display a robotic noise that will play sounds depending on the mode the robot is in
+# Function that will be used to play status noises depending the robot's emotion
 def buzzer_status(status_noise):
-    if status_noise == "happy":
+    if status_noise == "Happy": 
         Jerry.sing(7)
-    elif status_noise == "sad":
-        Jerry.sing(10)
-    elif status_noise == "surprise":
+    elif status_noise == "Surprise": 
         Jerry.sing(2)
-    elif status_noise == "confused":
-        Jerry.sing(11)
-    elif status_noise == "angry":
+    elif status_noise == "superhappy":
+        Jerry.sing(8)
+    elif status_noise == "Angry": 
         Jerry.sing(4)
-    elif status_noise == "connected":
-        Jerry.sing(0)
+    elif status_noise == "SmallSurprise":
+        Jerry.sing(17)
 
-# Add an obstacle avoidance function
+# Function that will allow the robot to implement obstacle avoidance in direct control and autonomous mode.
 def obstacle_avoidance():
     detected_object = get_distance()
     
@@ -157,21 +157,24 @@ def obstacle_avoidance():
 # Functions for the different modes on the web application
 def direct_control(command):
     if command == "forward":
+        obstacle_avoidance()
         Jerry.walk(5, 1200, 1)
         pass
     elif command == "left":
+        obstacle_avoidance()
         Jerry.turn(3, 1200, 1)
         pass
     elif command == "right":
+        obstacle_avoidance()
         Jerry.turn(3, 1200, -1)
         pass
     elif command == "stop":
         Jerry.home()
 
 def dance_mode(dance_name):
-    global currentDance
+    global current_dance
     
-    currentDance = dance_name
+    current_dance = dance_name
     
     if dance_name == "moonwalker":
         Jerry.moonwalker(4, 1000, 25, 1)
@@ -189,24 +192,24 @@ def autonomous_mode():
     while current_mode == "autonomous":
         obstacle_avoidance()
         
-        Jerry.walk(10, 1200, 1)
+        Jerry.walk(10, 1200, 1) # 10 steps forward
         time.sleep_ms(500)
-        Jerry.turn(2, 1200, 1)
+        Jerry.turn(2, 1200, 1) # Turning left
         time.sleep_ms(500)
-        Jerry.playGesture(11)
+        Jerry.playGesture(11) # Victory gesture
         time.sleep(500)
-        Jerry.walk(5, 1200, 1)
+        Jerry.walk(5, 1200, 1) # 5 steps forward
         time.sleep_ms(500)
-        Jerry.turn(2, 1200, -1)
-        Jerry.playGesture(11)
+        Jerry.turn(2, 1200, -1) # Turning right
+        Jerry.playGesture(11) # Victory gesture
         time.sleep_ms(500)
-        Jerry.walk(6, 1200, 1)
+        Jerry.walk(6, 1200, 1) # 6 steps forward
         time.sleep_ms(500)
-        Jerry.turn(2, 1200, -1)
+        Jerry.turn(2, 1200, -1) # Turning right
         time.sleep_ms(500)
-        Jerry.playGesture(11)
+        Jerry.playGesture(11) # Victory gesture
         time.sleep_ms(500)
-        Jerry.playGesture(10)
+        Jerry.playGesture(10) # Wave gesture
         time.sleep_ms(500)
         Jerry.home()
     
@@ -222,7 +225,7 @@ def interrupt_mode():
     
     dance_mode("moonwalker")
     
-    time.sleep_ms(2000)
+    time.sleep_ms(400)
     
     current_mode = previous_mode
     
@@ -230,20 +233,29 @@ def interrupt_mode():
     ble.gatts_notify(0, handle, status_data.encode())
     
     
-# Add a BLE function that will communicate with the web application
+# Function that will communicate with the web application
 def web_control(command):
     global current_mode, current_dance
     
     if command == "forward" or command == "left" or command == "right" or command == "stop":
         if command == "direct":
+            status_emotions("happy")
+            Jerry.sing("Happy")
             direct_control(command)
     elif command.startswith("dance"):
         current_mode = "dance"
+        status_emotions("happyopen")
+        buzzer_status("superhappy")
         dance_mode(command)
     elif command == "autonomous":
         current_mode = "autonomous"
+        status_emotions("smallsurprise")
+        buzzer_status("SmallSurprise")
         autonomous_mode()
     elif command == "interrupt":
+        current_mode = "interrupt"
+        status_emotions("angry")
+        buzzer_status("Angry")
         interrupt_mode()
     
 
@@ -264,12 +276,12 @@ def show_status():
         except:
             print("Staus failed to send over BLE.")
             
-# Here is where we are setting up the service for status data
-service_uuid = bluetooth.UUID("003f2c2b-53ce-4721-bff3-4b034f76ab2e")
-characteristic_uuid = bluetooth.UUID("db926a24-90e2-48dc-8637-977763f66d43")
+# Here is where we are setting up the BLE service
+SERVICE_UUID = bluetooth.UUID("003f2c2b-53ce-4721-bff3-4b034f76ab2e")
+CHARACTERISTIC_UUID = bluetooth.UUID("db926a24-90e2-48dc-8637-977763f66d43")
 
 service = ble.gatts_register_services((
-    (service_uuid, ( (characteristic_uuid, bluetooth.FLAG_WRITE), )),
+    (SERVICE_UUID, ( (CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE), )),
 ))
 
 handle = service[0][1][0]
