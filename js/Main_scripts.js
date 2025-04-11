@@ -1,4 +1,4 @@
-// This is the JavaScript code that is written to control the Otto LC Robots with this robotic platform. 
+// This is the JavaScript code that is written to control the Otto LC Robots (Max and Jerry) with this robotic platform. 
 //Written by: Jefferson Charles and Corey Chang
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
     }
 
-    // This function is responsible for changing the current mode Otto is in to a new mode
+    // This function is responsible for changing the current mode the robot is in to a new mode
     function changeMode (newMode)
     {
       currentMode = newMode;
@@ -63,12 +63,12 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],  // Service UUID of Robot 1 (Max)
+              optionalServices: ["battery_service"],  
             });
             bluetoothDevice.push(first_device);
 
 
-            firstconnectionStatus.textContent = "Connection Status: Connected to Robot 1";
+            firstconnectionStatus.textContent = "Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -83,13 +83,13 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
               icon: "success",
-              title: "Connected to Robot 1!"
+              title: "Connected to Max!"
             });
         }
         catch(error)
         {
           console.error("Connection Error: ", error);
-          firstconnectionStatus.textContent = "Connection Status: There was an error connecting to Robot 1!";
+          firstconnectionStatus.textContent = "Connection Status: There was an error connecting to Max!";
         }
       
       });
@@ -98,13 +98,13 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           let second_device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
-            optionalServices: ["battery_service"],  // Service UUID for Robot 2 (Jerry).
+            optionalServices: ["battery_service"], 
   
           });
           bluetoothDevice.push(second_device);
 
 
-          secondconnectionStatus.textContent = "Connection Status: Connected to Robot 2";
+          secondconnectionStatus.textContent = "Connection Status: Connected to Jerry";
 
           const Toast = Swal.mixin({
             toast: true,
@@ -119,14 +119,14 @@ document.addEventListener("DOMContentLoaded", function () {
           });
           Toast.fire({
             icon: "success",
-            title: "Connected to Robot 2!"
+            title: "Connected to Jerry!"
           });
 
         }
         catch(error)
         {
           console.error("Connection Error: ", error);
-          secondconnectionStatus.textContent = "Connection Status: There was an error connecting to Robot 2!";
+          secondconnectionStatus.textContent = "Connection Status: There was an error connecting to Jerry!";
         }
         
       });
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
               optionalServices: ["battery_service"],
             });
             bluetoothDevice.push(first_device);
-            connectionStatus.textContent = "Connection Status: Connected to Robot 1";
+            connectionStatus.textContent = "Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
               icon: "success",
-              title: "Connected to Robot 1!"
+              title: "Connected to Max!"
             });
 
           }
@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
               optionalServices: ["battery_service"],
             });
             bluetoothDevice.push(second_device);
-            connectionStatus.textContent = "Connection Status: Connected to Robot 2";
+            connectionStatus.textContent = "Connection Status: Connected to Jerry";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
               icon: "success",
-              title: "Connected to Robot 2!"
+              title: "Connected to Jerry!"
             });
 
           }
@@ -197,11 +197,11 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error("Connection Error: ", error);
           if (window.location.href.includes("index.html"))
           {
-            connectionStatus.textContent = "Connection Status: There was an error connecting to Robot 1!";
+            connectionStatus.textContent = "Connection Status: There was an error connecting to Max!";
           }
           else if (window.location.href.includes("Robot2.html"))
           {
-            connectionStatus.textContent = "Connection Status: There was an error connecting to Robot 2!";
+            connectionStatus.textContent = "Connection Status: There was an error connecting to Jerry!";
           }
             
         }
@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    // This function is to make sure that the web application is connected with Otto before any modes can be used.
+    // This function is to make sure that the web application is connected with the robots before any modes can be used.
     function bluetoothCheck ()
     {
       if (!bluetoothDevice || bluetoothDevice.length === 0)
@@ -228,14 +228,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         Toast.fire({
           icon: "error",
-          title: "You must be connected to one or both Otto robots to select a mode!"
+          title: "You must be connected to one of the robots or both robots to select a mode!"
         });
         return false;
       }
       return true;
     }
 
-    // Here is the control logic for the different modes users are able to choose from
+    // Here is the different control logic for the different modes users are able to choose from
     direct_Control.addEventListener("click", function () {
 
       // Here we are making sure that the user is connected to the robots via Bluetooth
@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
       updateStatus("Moving", "In dancing mode");
 
-      // Here is the toastr alert letting users know that they selected dancing control mode
+      // Here is the toastr alert letting users know that they selected dance control mode
       const Toast = Swal.mixin({
         toast: true,
         position: "top-end",
@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
       //   return;
       // }
 
-      // This if/else statement will be resopnsible for giving the user the option to make Otto dance whil in direct control or autonomous mode
+      // This if/else statement will be resopnsible for giving the user the option to make the robot dance while in direct control or autonomous mode
       if (currentMode === "direct" || currentMode === "autonomous")
       {
         const Toast = Swal.mixin({
@@ -436,7 +436,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        //Here we are randomly selecting a dance for Otto to perform
+        //Here we are randomly selecting a dance for the robot to perform
         const dance_options = Array.from(danceList.options).map(options => options.value);
         const random_dance = dance_options[Math.floor(Math.random() * dance_options.length)];
 
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sendCommand(random_dance);
 
         setTimeout(() => {
-          //Here we are returning to the previous mode after Otto completes it's dance
+          //Here we are returning to the previous mode after the robot completes it's dance
           changeMode(previousMode);
 
           if (previousMode === "direct")
@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
 
-            // Toastr alert letting users know what mode Otto is returning back to
+            // Toastr alert letting users know what mode the robot is returning back to
             const Toast = Swal.mixin({
               toast: true,
               position: "top-end",
@@ -480,7 +480,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
               icon: "success",
-              title: `Otto is back in ${previousMode} control mode.`
+              title: `Returning back to ${previousMode} control mode.`
             });
           }
           else if (previousMode === "autonomous")
@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
               allControl.style.display = "none";
             }
 
-            // Toastr alert letting users know what mode Otto is returning back to
+            // Toastr alert letting users know what mode the robot is returning back to
             const Toast = Swal.mixin({
               toast: true,
               position: "top-end",
@@ -513,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
               icon: "success",
-              title: `Otto is back in ${previousMode} mode.`
+              title: `Returning back to ${previousMode} mode.`
             });
           }
 
@@ -587,7 +587,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // This if statement will allow users to control the robots with the "WSAD" or arrow keys depending on the robot they want to control. Users will also be able to have control of both robots too.
       if (window.location.href.includes("index.html"))
       {
-        //Here is the control logic for robot 1
+        //Here is the control logic for Max
         if (currentMode !== "direct")
         {
           return;
@@ -612,7 +612,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
       }
-      //Here is the control logic for robot 2
+      //Here is the control logic for Jerry
       else if(window.location.href.includes("Robot2.html"))
       {
 
@@ -655,7 +655,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         switch (event.key)
         {
-          //Controls for Robot 1
+          //Controls for Max
           case "w":
           case "W":
             sendCommand("forward", 1);
@@ -673,7 +673,7 @@ document.addEventListener("DOMContentLoaded", function () {
             sendCommand("right", 1);
             break;
           
-          // Controls for Robot 2
+          // Controls for Jerry
           case "ArrowUp":
             sendCommand("forward", 2);
             break;
@@ -722,13 +722,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (Num_robot === 1)
         {
-          //robot1Characteristic.writeValue(data);
-          console.log("Sent movement command to Robot 1: ", command);
+          console.log("Sent movement command to Max: ", command);
         }
         else if(Num_robot === 2)
         {
-          //robot2Characteristic.writeValue(data);
-          console.log("Sent movement command to Robot 2: ", command);
+          console.log("Sent movement command to Jerry: ", command);
         }
       }
       catch (err)
@@ -750,8 +748,8 @@ document.addEventListener("DOMContentLoaded", function () {
         // The idea is that different robot statuses will be displayed based on the parameters below
         switch (parameter)
         {
-          case "movement":
-            document.getElementById("movementStatus").textContent = "Movement Status: " + value;
+          case "mode":
+            document.getElementById("modeStatus").textContent = "Mode Status: " + value;
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
@@ -774,9 +772,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // The idea is that different robot statuses will be displayed based on the parameters below for both of the robots
         switch (parameter)
         {
-          case "movement":
-            document.getElementById("movementStatus").textContent = "Movement Status: " + value;
-            document.getElementById("movement_Status").textContent = "Movement Status: " + value;
+          case "mode":
+            document.getElementById("modeStatus").textContent = "Mode Status: " + value;
+            document.getElementById("mode_Status").textContent = "Mode Status: " + value;
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
@@ -802,7 +800,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Here is where status updates coming from the robot would happen and be displayed on the webpage. Need to update this when we have the software done for the robots.
     setInterval(() => {
-      updateStatus("movement", "Otto is moving");
+      updateStatus("mode", "Otto is moving");
       updateStatus("emotion", "Happy");
       updateStatus("light", "Bright");
       updateStatus("object", "No object detected");

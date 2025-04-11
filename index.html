@@ -1,6 +1,6 @@
 <!-- Created by: Jefferson Charles and Corey Chang-->
 
-<!-- This is the software that is written to control Robot 1 (Max) -->
+<!-- This is the software that is written to create the control platform for Robot 1 (Max) -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,15 +42,15 @@
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Robot Selection</div>
 
-                            <!-- Users will get the option to control both of the robots separately or both robots at the same time. -->
+                            <!-- Users will get the choice of choosing to control both of the robots separately or both robots at the same time. -->
                             <a class="nav-link" href="index.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-robot"></i></div>
-                                Robot 1
+                                Max
                             </a>
 
                             <a class="nav-link" href="Robot2.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-robot"></i></div>
-                                Robot 2
+                                Jerry
                             </a>
 
                             <a class="nav-link" href="BothRobots.html">
@@ -63,15 +63,15 @@
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4">
-                        <h1 class="mt-4">Robot 1 Control</h1>
+                        <h1 class="mt-4">Max Control</h1>
 
                         <div class="mb-3">
-                            <!-- Here is the Bluetooth button users will click to connect to Otto -->
-                            <button id="connectButton" class="btn btn-success">Connect to Robot 1</button>
+                            <!-- Here is the Bluetooth button users will click to connect to Max -->
+                            <button id="connectButton" class="btn btn-success">Connect to Max</button>
                             <p id="connectionStatus">Connection Status:</p>
                         </div>
 
-                        <!-- Here are the different control options users are able to choose from to interact with the Otto LC robot (Robot 1) -->
+                        <!-- Here are the different control options users are able to choose from to interact with the Otto LC robot (Max) -->
                         <div class="mb-3 control-options">
                             <h4>Control Options</h4>
                                 <button class="btn btn-primary" id="directControl">Direct Control Mode</button>
@@ -82,14 +82,14 @@
 
                         <div class="mb-3 keyboard-control" id="keyboardControl" style="display:none;">
                             <h4>Keyboard Controls</h4>
-                            <p>Use "WSAD" to control the movements of Robot 1</p>
+                            <p>Use "WSAD" to control the movements of Max</p>
                         </div>
 
-                        <!-- Here are the different dance selections that users are able to choose from to make Otto dance while in dancing mode -->
+                        <!-- Here are the different dance selections that users are able to choose from to make Max dance while in dance mode -->
                         <div class="mb-3 dance-selection" id="danceSelection" style="display:none;">
                             <h4>Dance Selection</h4>
                                 <select id="danceList" class="form-select" style="max-width:300px;">
-                                    <!-- Change these later on -->
+                                    <!-- These will be the dance options -->
                                     <option value="dance1">Dance 1</option>
                                     <option value="dance2">Dance 2</option>
                                     <option value="dance3">Dance 3</option>
@@ -98,10 +98,10 @@
                                 <button class="btn btn-info mt-2" id="startDance">Start Dance</button>
                         </div>
                         
-                        <!-- Here is where different status conditons of the Otto LC robot (Robot 1) will be displayed -->
+                        <!-- Here is where different status conditons of the Otto LC robot (Max) will be displayed -->
                         <div class="mb-3 status-dashboard">
                             <h4>Robot Status</h4>
-                                <p id="movementStatus">Movement Status:</p>
+                                <p id="modeStatus">Mode:</p>
                                 <p id="emotionStatus">Emotional Status:</p>
                                 <p id="lightStatus">Room Light Level:</p>
                                 <p id="objectStatus">Obstacle Detection:</p>
@@ -127,11 +127,11 @@
             {
                 var searchInput = document.getElementById("searchInput").value.toLowerCase();
 
-                if (searchInput == "robot 1")
+                if (searchInput == "max")
                 {
                     window.location.href = "index.html";
                 }
-                else if(searchInput == "robot 2")
+                else if(searchInput == "jerry")
                 {
                     window.location.href = "Robot2.html";
 
@@ -159,7 +159,7 @@
                     });
                     Toast.fire({
                       icon: "error",
-                      title: "Please enter Robot 1, Robot 2, Both Robots, or home into the search bar."
+                      title: "Please enter max, jerry, Both Robots, or home into the search bar."
                     });
                 }
 
