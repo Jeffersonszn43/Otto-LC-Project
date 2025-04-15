@@ -46,6 +46,7 @@ ble.config(gap_name=DEVICE_NAME)
 current_mode = "idle"
 current_dance = "none"
 previous_mode = "idle"
+mode = None
 
 
 def adv_payload(name):
@@ -88,7 +89,10 @@ def light_levels():
     deadzone = int(sensor_value * 0.05)
     
     # Here we are observing the light levels of the room Jerry is in
-    return "It is dark in this room!" if sensor_value >= 56 + deadzone elif sensor_value <= 45 - deadzone "This room is bright!"
+    if sensor_value >= 56 + deadzone:
+        return "It is dark in this room!"
+    elif sensor_value <= 45 - deadzone:
+        return "This room is bright!"
     
 
 def get_distance ():
@@ -182,7 +186,7 @@ def dance_mode(dance_name):
     elif dance_name == "crusaito":
         Jerry.crusaito(3, 1000, 20, 1)
         Jerry.crusaito(3, 1000, 20, -1)
-    elif dance_mane == "flapping":
+    elif dance_name == "flapping":
         Jerry.flapping(3, 1000, 20, 1)
         Jerry.flapping(3, 1000, 20, -1)
     elif dance_name == "tiptoeswing":
@@ -223,7 +227,7 @@ def interrupt_mode():
     status_data = f"{current_mode},{light_levels()},{obstacle_avoidance()},dancing"
     ble.gatts_notify(0, handle, status_data.encode())
     
-    dance_mode("moonwalker")
+    dance_mode()
     
     time.sleep_ms(400)
     
@@ -231,34 +235,8 @@ def interrupt_mode():
     
     status_data = f"{current_mode},{light_levels()},{get_distance()},{current_dance}"
     ble.gatts_notify(0, handle, status_data.encode())
-    
-    
-# Function that will communicate with the web application
-def web_control(command):
-    global current_mode, current_dance
-    
-    if command == "forward" or command == "left" or command == "right" or command == "stop":
-        if command == "direct":
-            status_emotions("happy")
-            Jerry.sing("Happy")
-            direct_control(command)
-    elif command.startswith("dance"):
-        current_mode = "dance"
-        status_emotions("happyopen")
-        buzzer_status("superhappy")
-        dance_mode(command)
-    elif command == "autonomous":
-        current_mode = "autonomous"
-        status_emotions("smallsurprise")
-        buzzer_status("SmallSurprise")
-        autonomous_mode()
-    elif command == "interrupt":
-        current_mode = "interrupt"
-        status_emotions("angry")
-        buzzer_status("Angry")
-        interrupt_mode()
-    
 
+    
 # Add a way to show status conditions from here to the web application
 def show_status():
     status = {
@@ -277,8 +255,8 @@ def show_status():
             print("Staus failed to send over BLE.")
             
 # Here is where we are setting up the BLE service
-SERVICE_UUID = bluetooth.UUID("003f2c2b-53ce-4721-bff3-4b034f76ab2e")
-CHARACTERISTIC_UUID = bluetooth.UUID("db926a24-90e2-48dc-8637-977763f66d43")
+SERVICE_UUID = bluetooth.UUID("90b6d40a-0a14-474a-9cac-141f50a17063")
+CHARACTERISTIC_UUID = bluetooth.UUID("fc964d91-2ebc-46b1-8a06-e98e497f099a")
 
 service = ble.gatts_register_services((
     (SERVICE_UUID, ( (CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE), )),
@@ -293,9 +271,35 @@ def bt_rx_callback(event, data):
 ble.gatts_set_buffer(handle, 100)
 ble.irq(bt_rx_callback)
 
-# Implement in the while True loop how the code will operate to control the robot from the web application
+# Here we are performing the corresponding actions when the user selects a mode on the web application
 while True:
-    # implement further logic here
+    # Here is the control logic where the robot will be in the different modes the web application offers depending on the mode chosen by the user.
+    if mode:
+        if command == "forward" or command == "left" or command == "right" or command == "stop":
+            if command == "direct":
+                status_emotions("happy")
+                Jerry.sing("Happy")
+                direct_control(command)
+        elif command.startswith("dance"):
+            current_mode = "dance"
+            status_emotions("happyopen")
+            buzzer_status("superhappy")
+            dance_mode(command)
+        elif command == "autonomous":
+            current_mode = "autonomous"
+            status_emotions("smallsurprise")
+            buzzer_status("SmallSurprise")
+            autonomous_mode()
+        elif command == "interrupt":
+            current_mode = "interrupt"
+            status_emotions("angry")
+            buzzer_status("Angry")
+            interrupt_mode()
+            
+    # Here is where the the status data of Jerry will be shown on the web application dashboard  
     show_status()
+    
+    # Here we have a 500ms delay in the loop
+    time.sleep_ms(500)
     
 

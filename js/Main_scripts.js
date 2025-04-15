@@ -6,9 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentMode = "none";   // Possibly have to change later when robot software is done
     let bluetoothDevice = [];  // This variable will store the connected Bluetooth device
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
+    let jerry_characteristic = null;
     
-
-
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
     const connectButton1 = document.getElementById("connectButton1");
@@ -68,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
             bluetoothDevice.push(first_device);
 
 
-            firstconnectionStatus.textContent = "Connection Status: Connected to Max";
+            firstconnectionStatus.textContent = "Max Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -89,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
         catch(error)
         {
           console.error("Connection Error: ", error);
-          firstconnectionStatus.textContent = "Connection Status: There was an error connecting to Max!";
+          firstconnectionStatus.textContent = "Max Connection Status: There was an error connecting to Max!";
         }
       
       });
@@ -98,13 +97,54 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           let second_device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
-            optionalServices: ["battery_service"], 
+            optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Here is the service UUID for Jerry
   
           });
           bluetoothDevice.push(second_device);
 
+          // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
+          const server = await second_device.gatt.connect();
+          const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
+          jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
 
-          secondconnectionStatus.textContent = "Connection Status: Connected to Jerry";
+          // Here we are subscribing to the notifications (status data) coming from Jerry for the status dashboard
+          jerry_characteristic.startNotifications().then(() => {
+            jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
+              
+              // Here is where status updates coming from Jerry would happen and be displayed on the webpage.
+              const value = new TextDecoder().decode(event.target.value);
+              const status = JSON.parse(value);
+
+              // Mode status
+              updateStatus("mode", status.mode);
+
+              //Emotional status
+              if (status.mode === "direct")
+              {
+                updateStatus("emotion", "Happy");
+              }
+              else if (status.mode === "dance")
+              {
+                updateStatus("emotion", "Happy Open");
+              }
+              else if (status.mode === "autonomous")
+              {
+                updateStatus("emotion", "Small Surprise");
+              }
+              else if (status.mode === "interrupt")
+              {
+                updateStatus("emotion", "Angry");
+              }
+
+              // light status
+              updateStatus("light", status.light)
+
+              // Object detection status
+              updateStatus("object", status.object);
+            });
+          });
+
+          secondconnectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
           const Toast = Swal.mixin({
             toast: true,
@@ -126,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
         catch(error)
         {
           console.error("Connection Error: ", error);
-          secondconnectionStatus.textContent = "Connection Status: There was an error connecting to Jerry!";
+          secondconnectionStatus.textContent = "Jerry Connection Status: There was an error connecting to Jerry!";
         }
         
       });
@@ -143,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
               optionalServices: ["battery_service"],
             });
             bluetoothDevice.push(first_device);
-            connectionStatus.textContent = "Connection Status: Connected to Max";
+            connectionStatus.textContent = "Max Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -166,10 +206,53 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             let second_device = await navigator.bluetooth.requestDevice({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],
+              optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Service UUID for Jerry
             });
             bluetoothDevice.push(second_device);
-            connectionStatus.textContent = "Connection Status: Connected to Jerry";
+
+            // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
+            const server = await second_device.gatt.connect();
+            const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
+            jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
+
+            // Here is where we are subscribing to notifications (status data) coming from Jerry for the status dashboard
+            jerry_characteristic.startNotifications().then(() => {
+              jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
+              
+                // Here is where status updates coming from Jerry would happen and be displayed on the webpage.
+                const value = new TextDecoder().decode(event.target.value);
+                const status = JSON.parse(value);
+  
+                // Mode status
+                updateStatus("mode", status.mode);
+  
+                //Emotional status
+                if (status.mode === "direct")
+                {
+                  updateStatus("emotion", "Happy");
+                }
+                else if (status.mode === "dance")
+                {
+                  updateStatus("emotion", "Happy Open");
+                }
+                else if (status.mode === "autonomous")
+                {
+                  updateStatus("emotion", "Small Surprise");
+                }
+                else if (status.mode === "interrupt")
+                {
+                  updateStatus("emotion", "Angry");
+                }
+  
+                // light status
+                updateStatus("light", status.light)
+  
+                // Object detection status
+                updateStatus("object", status.object);
+              });
+            });
+
+            connectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
             const Toast = Swal.mixin({
               toast: true,
@@ -197,11 +280,11 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error("Connection Error: ", error);
           if (window.location.href.includes("index.html"))
           {
-            connectionStatus.textContent = "Connection Status: There was an error connecting to Max!";
+            connectionStatus.textContent = "Max Connection Status: There was an error connecting to Max!";
           }
           else if (window.location.href.includes("Robot2.html"))
           {
-            connectionStatus.textContent = "Connection Status: There was an error connecting to Jerry!";
+            connectionStatus.textContent = "Jerry Connection Status: There was an error connecting to Jerry!";
           }
             
         }
@@ -209,6 +292,8 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
     }
+
+    //
 
     // This function is to make sure that the web application is connected with the robots before any modes can be used.
     function bluetoothCheck ()
@@ -239,10 +324,10 @@ document.addEventListener("DOMContentLoaded", function () {
     direct_Control.addEventListener("click", function () {
 
       // Here we are making sure that the user is connected to the robots via Bluetooth
-      // if (!bluetoothCheck())
-      // {
-        // return;
-      // }
+      if (!bluetoothCheck())
+      {
+        return;
+      }
 
       hide ();
       currentMode = "direct";
@@ -288,10 +373,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     dance_Mode.addEventListener("click", function () {
       //Here we are making sure that the user is connected to the robots via Bluetooth
-      // if (!bluetoothCheck())
-      // {
-      //   return;
-      // }
+      if (!bluetoothCheck())
+      {
+        return;
+      }
 
       hide ();
       currentMode = "dance";
@@ -339,10 +424,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     autonomous_Mode.addEventListener("click", function () {
       // Here we are making sure that the user is connected to the robots through Bluetooth
-      // if (!bluetoothCheck())
-      // {
-      //   return;
-      // }
+      if (!bluetoothCheck())
+      {
+        return;
+      }
 
       hide ();
       currentMode = "autonomous";
@@ -389,10 +474,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     interrupt_Mode.addEventListener("click", function () {
       // Here we are making sure that the user is connected to the robots via Bluetooth
-      // if (!bluetoothCheck())
-      // {
-      //   return;
-      // }
+      if (!bluetoothCheck())
+      {
+        return;
+      }
 
       // This if/else statement will be resopnsible for giving the user the option to make the robot dance while in direct control or autonomous mode
       if (currentMode === "direct" || currentMode === "autonomous")
@@ -695,7 +780,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // This function is responsible for sending the user commands via Bluetooth to the robots
-    function sendCommand(command, Num_robot) 
+    async function sendCommand(command, Num_robot) 
     {
       if (bluetoothDevice.length === 0)
       {
@@ -720,18 +805,23 @@ document.addEventListener("DOMContentLoaded", function () {
       // Here is logic that will help to send the appropriate direct control commands to the robots.
       try {
 
+        const encoder = new TextEncoder();
+
         if (Num_robot === 1)
         {
+          // Need to add characteristic logic here for Max to recieve commands from the web application later
           console.log("Sent movement command to Max: ", command);
         }
         else if(Num_robot === 2)
         {
+          // Here we are allowing Jerry to receive commands through characteristics
+          await jerry_characteristic.writeValue(encoder.encode(command));
           console.log("Sent movement command to Jerry: ", command);
         }
       }
       catch (err)
       {
-        console.error("Command failed to send: ", err);
+        console.error("Failed to send this command: ", err);
       }
 
       // replace this later on when the software for the robots are done
@@ -797,13 +887,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
-
-    // Here is where status updates coming from the robot would happen and be displayed on the webpage. Need to update this when we have the software done for the robots.
-    setInterval(() => {
-      updateStatus("mode", "Otto is moving");
-      updateStatus("emotion", "Happy");
-      updateStatus("light", "Bright");
-      updateStatus("object", "No object detected");
-    }, 3000);
-
+    
 });
