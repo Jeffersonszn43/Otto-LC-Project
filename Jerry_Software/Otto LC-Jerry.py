@@ -7,6 +7,7 @@ from machine import Pin, ADC, time_pulse_us
 import bluetooth
 import struct
 import ujson
+from micropython import const
 
 # Here we are initializing the Servo and Buzzer pins
 LeftLeg = 3
@@ -29,9 +30,24 @@ CS = 17
 # This is the orientation on the 8x8 LED Matrix. This will allow the LEDs on the Matrix to display things in a normal orientation on the robot.
 Orientation = 3
 
-# Here is where we are initializing the Otto LC robot (Jerry) along with the 8x8 LED Matrix
+# Here are the global variables needed
+current_mode = "idle"
+current_dance = "none"
+previous_mode = "idle"
+mode = None
+autonomous_state = 0
+
+# This global variable is responsible for storing the connection handle when the device made a connection over Bluetooth
+conn_handle = None
+
+# Here we are defining the variables for the BLE IRQ constants that will have important events that will happen between the robot and the web application
+_IRQ_CENTRAL_CONNECT = const(1)
+_IRQ_CENTRAL_DISCONNECT = const(2)
+_IRQ_GATTS_WRITE = const(3)
+
+# Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix
 Jerry = otto9.Otto9()
-Jerry.init(LeftLeg, RightLeg, LeftFoot, RightFoot, True, Buzzer, Trig_Pin, Echo_Pin, Din)
+Jerry.init(3, 7, 12, 10, True, 20, 22, 21, 19)
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
@@ -42,27 +58,34 @@ ble.active(True)
 DEVICE_NAME = "Jerry_BLE"
 ble.config(gap_name=DEVICE_NAME)
 
-# These will track the current state of Jerry
-current_mode = "idle"
-current_dance = "none"
-previous_mode = "idle"
-mode = None
-
 
 def adv_payload(name):
     # Here we are creating an advertisement payload
     name_bytes = name.encode()
     return struct.pack("BB", len(name_bytes) + 1, 0x09) + name_bytes
 
+# Here is where we are setting up the BLE service
+SERVICE_UUID = bluetooth.UUID("fb483dbf-6b8d-4719-9290-624ec26d8bf3")
+CHARACTERISTIC_UUID = bluetooth.UUID("5c79fdd4-8db4-4d78-8122-04a67455f527")
+
+# This will be a tuple of registered services. This will also allow us to send notification data from the web application. 
+service = ble.gatts_register_services(((SERVICE_UUID, ((CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE | bluetooth.FLAG_NOTIFY),)),))
+
+# Here is where we are properly unpacking data
+((handle,),) = service
+
 # Here is a function that will handle the connection and disconnection to the robot from the web application.
 def bt_irq(event, data):
-    if event == bluetooth.IRQ_CENTRAL_CONNECT:
+    global conn_handle, mode
+    if event == _IRQ_CENTRAL_CONNECT:
+        conn_handle, _, _ = data  # Here is where we are saving the connection handle after the connection is made via Bluetooth
         Jerry.sing(0)
         time.sleep_ms(500)
         Jerry.playGesture(1)
         time.sleep_ms(500)
         Jerry.home()
-    elif event == bluetooth.IRQ_CENTRAL_DISCONNECT:
+    elif event == _IRQ_CENTRAL_DISCONNECT:
+        conn_handle = None # Here we are resetting the connection handle
         Jerry.sing(1)
         time.sleep_ms(500)
         Jerry.playGesture(2)
@@ -71,6 +94,9 @@ def bt_irq(event, data):
         
         # Here we are advertising Jerry for users to reconnect to if they get disconnected to Jerry.
         ble.gap_advertise(100, adv_payload(DEVICE_NAME))
+    # This means we are saving the commands coming from the web application to a variable that     
+    elif event == _IRQ_GATTS_WRITE:
+        mode = ble.gatts_read(handle).decode().strip()
 
 ble.irq(bt_irq)
 
@@ -143,158 +169,163 @@ def buzzer_status(status_noise):
         Jerry.sing(17)
 
 # Function that will allow the robot to implement obstacle avoidance in direct control and autonomous mode.
-def obstacle_avoidance():
+def obstacle_avoidance(status_only=False):
     detected_object = get_distance()
     
     if detected_object != -1 and detected_object <= 30:
+        # This makes sure that the function will correctly send this string as status data for the dashboard
+        if status_only:
+            return "Object in front of me"
+        
         Jerry.putMouth(20)
         Jerry.playGesture(5)
         time.sleep_ms(500)
         #Make Jerry turn another direction and let the user continue to control it using direct control or autonomous mode.
         Jerry.turn(2, 1000, 1)
         time.sleep_ms(500)
-        print("Object in front of me!")
+        #print("Object in front of me!")
     else:
-        print("No object in front of me.")
+        if status_only:
+            return "No object in front of me"
+    
+    # This makes sure a string is also sent as status data to avoid "None" breaking the BLE connection
+    if status_only:
+        return "No object in front of me"
+        
                 
        
 # Functions for the different modes on the web application
 def direct_control(command):
     if command == "forward":
         obstacle_avoidance()
-        Jerry.walk(5, 1200, 1)
-        pass
+        Jerry.walk(2, 1200, 1)
+        
     elif command == "left":
         obstacle_avoidance()
-        Jerry.turn(3, 1200, 1)
-        pass
+        Jerry.turn(2, 1200, 1)
+        
     elif command == "right":
         obstacle_avoidance()
-        Jerry.turn(3, 1200, -1)
-        pass
+        Jerry.turn(2, 1200, -1)
+        
     elif command == "stop":
         Jerry.home()
 
 def dance_mode(dance_name):
+    Dance_Name = dance_name.lower().replace(" ", "")
     global current_dance
     
-    current_dance = dance_name
+    current_dance = Dance_Name
     
-    if dance_name == "moonwalker":
+    if Dance_Name == "moonwalker":
         Jerry.moonwalker(4, 1000, 25, 1)
         Jerry.moonwalker(4, 1000, 25, -1)
-    elif dance_name == "crusaito":
+    elif Dance_Name == "crusaito":
         Jerry.crusaito(3, 1000, 20, 1)
         Jerry.crusaito(3, 1000, 20, -1)
-    elif dance_name == "flapping":
+    elif Dance_Name == "flapping":
         Jerry.flapping(3, 1000, 20, 1)
         Jerry.flapping(3, 1000, 20, -1)
-    elif dance_name == "tiptoeswing":
+    elif Dance_Name == "tiptoeswing":
         Jerry.tiptoeSwing(3, 1000, 20)
 
 def autonomous_mode():
-    while current_mode == "autonomous":
+    
+    global autonomous_state
+    
+    if autonomous_state == 0:
         obstacle_avoidance()
-        
+
         Jerry.walk(10, 1200, 1) # 10 steps forward
-        time.sleep_ms(500)
+    elif autonomous_state == 1:
         Jerry.turn(2, 1200, 1) # Turning left
-        time.sleep_ms(500)
+    elif autonomous_state == 2:
         Jerry.playGesture(11) # Victory gesture
-        time.sleep(500)
+    elif autonomous_state == 3:
         Jerry.walk(5, 1200, 1) # 5 steps forward
-        time.sleep_ms(500)
+    elif autonomous_state == 4:
         Jerry.turn(2, 1200, -1) # Turning right
+    elif autonomous_state == 5:
         Jerry.playGesture(11) # Victory gesture
-        time.sleep_ms(500)
+    elif autonomous_state == 6:
         Jerry.walk(6, 1200, 1) # 6 steps forward
-        time.sleep_ms(500)
+    elif autonomous_state == 7:
         Jerry.turn(2, 1200, -1) # Turning right
-        time.sleep_ms(500)
+    elif autonomous_state == 8:
         Jerry.playGesture(11) # Victory gesture
-        time.sleep_ms(500)
+    elif autonomous_state == 9:
         Jerry.playGesture(10) # Wave gesture
-        time.sleep_ms(500)
         Jerry.home()
+        autonomous_state = -1
+    
+    autonomous_state += 1
     
 def interrupt_mode():
     global current_mode, previous_mode
     
     previous_mode = current_mode
-    
     current_mode = "interrupt"
     
-    status_data = f"{current_mode},{light_levels()},{obstacle_avoidance()},dancing"
-    ble.gatts_notify(0, handle, status_data.encode())
-    
-    dance_mode()
-    
+    status_emotions("angry")
+    buzzer_status("Angry")
+    dance_mode("moonwalker")
     time.sleep_ms(400)
-    
     current_mode = previous_mode
     
-    status_data = f"{current_mode},{light_levels()},{get_distance()},{current_dance}"
-    ble.gatts_notify(0, handle, status_data.encode())
-
     
 # Add a way to show status conditions from here to the web application
 def show_status():
     status = {
         "mode": current_mode,
         "dance": current_dance,
-        "light": light_levels(),
-        "obstacle detection": obstacle_avoidance()
+        "light": light_levels() or "Unknown",
+        "object": obstacle_avoidance(status_only=True) or "Unknown" # This makes sure that we are only getting the status string
     }
     
     status_data = ujson.dumps(status)
     
-    if status_chracteristic is not None:
+    if conn_handle is not None:
         try:
-            status_chracteristic.notify(status_data)
+            ble.gatts_notify(conn_handle, handle, status_data.encode())
         except:
-            print("Staus failed to send over BLE.")
+            print("Failed to send to send status over BLE")
             
-# Here is where we are setting up the BLE service
-SERVICE_UUID = bluetooth.UUID("90b6d40a-0a14-474a-9cac-141f50a17063")
-CHARACTERISTIC_UUID = bluetooth.UUID("fc964d91-2ebc-46b1-8a06-e98e497f099a")
-
-service = ble.gatts_register_services((
-    (SERVICE_UUID, ( (CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE), )),
-))
-
-handle = service[0][1][0]
-
-def bt_rx_callback(event, data):
-    value = ble.gatts_read(handle).decode("utf-8")
-    web_control(value)
-
-ble.gatts_set_buffer(handle, 100)
-ble.irq(bt_rx_callback)
 
 # Here we are performing the corresponding actions when the user selects a mode on the web application
 while True:
-    # Here is the control logic where the robot will be in the different modes the web application offers depending on the mode chosen by the user.
+        
     if mode:
+        command = mode.lower().replace(" ", "")
+        # Here is the control logic where the robot will be in the different modes the web application offers depending on the mode chosen by the user.
         if command == "forward" or command == "left" or command == "right" or command == "stop":
-            if command == "direct":
-                status_emotions("happy")
-                Jerry.sing("Happy")
-                direct_control(command)
-        elif command.startswith("dance"):
-            current_mode = "dance"
-            status_emotions("happyopen")
-            buzzer_status("superhappy")
-            dance_mode(command)
-        elif command == "autonomous":
+            current_mode = "direct"
+            status_emotions("happy")
+            Jerry.sing("Happy")
+            direct_control(command)
+            
+        elif mode == "autonomous":
             current_mode = "autonomous"
             status_emotions("smallsurprise")
             buzzer_status("SmallSurprise")
             autonomous_mode()
-        elif command == "interrupt":
+            current_mode = "idle"
+            
+        elif mode == "interrupt":
             current_mode = "interrupt"
             status_emotions("angry")
             buzzer_status("Angry")
             interrupt_mode()
+            current_mode = "idle"
+        else:
+            current_mode = "dance"
+            status_emotions("happyopen")
+            buzzer_status("superhappy")
+            dance_mode(command)
+            current_mode = "idle"
+        
+        # Here we are resetting the variable to make sure that no commands comming from the user repeats
+        command = None
+    
             
     # Here is where the the status data of Jerry will be shown on the web application dashboard  
     show_status()
@@ -302,4 +333,3 @@ while True:
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
-
