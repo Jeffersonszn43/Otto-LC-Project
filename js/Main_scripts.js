@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     {
       currentMode = newMode;
     }
-
+    //Both robots
     // Here is the the BLE connection logic where users are able to connect to the robots to interact with them using the web application
     if (window.location.href.includes("BothRobots.html"))
     {
@@ -171,18 +171,37 @@ document.addEventListener("DOMContentLoaded", function () {
         
       });
     }
-    else
+    // This is the Bluetooth logic for Max's control page and Jerry's control page on the web app.Separatly.
+    // Here is Max ##################################################################################################
+    else 
     {
       connectButton.addEventListener("click", async function () {
         try {
 
-          if (window.location.href.includes("index.html"))
+          if (window.location.href.includes("Robot1.html"))
           {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],
+              optionalServices: ["4fafc201-1fb5-459e-8fcc-c5c9c331914b"],
             });
+
             bluetoothDevice.push(first_device);
+
+            const server = await first_device.gatt.connect();
+            const service = await server.getPrimaryService("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
+            max_characteristic = await service.getCharacteristic("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+            
+            await max_characteristic.startNotifications().then(() => {
+            max_characteristic.addEventListener("characteristicvaluechanged", (event) => 
+              {
+                //Add things here
+              const value = new TextDecoder().decode(event.target.value);
+              console.log("Received notification from Max:", value);
+              updateStatus("dance", value); // Show on UI under 'Current Dance'
+
+              });
+            });
+            //////////////////////////////////////////////////////////////////////////
             connectionStatus.textContent = "Max Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
@@ -278,7 +297,7 @@ document.addEventListener("DOMContentLoaded", function () {
         catch(error) 
         {
           console.error("Connection Error: ", error);
-          if (window.location.href.includes("index.html"))
+          if (window.location.href.includes("Robot1.html"))
           {
             connectionStatus.textContent = "Max Connection Status: There was an error connecting to Max!";
           }
@@ -333,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
       currentMode = "direct";
 
       //This will hide certain information on the webpage that is meant to not be shown in this instance
-      if (window.location.href.includes("index.html"))
+      if (window.location.href.includes("Robot1.html"))
       {
         keyboardControl.style.display = "block";
         danceSelection.style.display = "none";
@@ -382,7 +401,7 @@ document.addEventListener("DOMContentLoaded", function () {
       currentMode = "dance";
 
       //This will hide certain information on the webpage that is meant to not be shown in this instance
-      if (window.location.href.includes("index.html"))
+      if (window.location.href.includes("Robot1.html"))
       {
         keyboardControl.style.display = "none";
         danceSelection.style.display = "block";
@@ -433,7 +452,7 @@ document.addEventListener("DOMContentLoaded", function () {
       currentMode = "autonomous";
 
       //This will hide certain information on the webpage that is meant to not be shown in this instance
-      if (window.location.href.includes("index.html"))
+      if (window.location.href.includes("Robot1.html"))
       {
         keyboardControl.style.display = "none";
         danceSelection.style.display = "none";
@@ -502,7 +521,7 @@ document.addEventListener("DOMContentLoaded", function () {
         changeMode("interrupt");
 
         //This will hide certain information on the webpage that is meant to not be shown in this instance
-        if (window.location.href.includes("index.html"))
+        if (window.location.href.includes("Robot1.html"))
         {
           keyboardControl.style.display = "none";
           danceSelection.style.display = "none";
@@ -536,7 +555,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (previousMode === "direct")
           {
-            if (window.location.href.includes("index.html"))
+            if (window.location.href.includes("Robot1.html"))
             {
               keyboardControl.style.display = "block";
             }
@@ -570,7 +589,7 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (previousMode === "autonomous")
           {
-            if (window.location.href.includes("index.html"))
+            if (window.location.href.includes("Robot1.html"))
             {
               keyboardControl.style.display = "none";
             }
@@ -607,7 +626,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       else
       {
-        //This lets users know which modes interrupt mode works in
+        //This lets users know which modes interrupt mode works in..
         const Toast = Swal.mixin({
           toast: true,
           position: "top-end",
@@ -670,7 +689,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
 
       // This if statement will allow users to control the robots with the "WSAD" or arrow keys depending on the robot they want to control. Users will also be able to have control of both robots too.
-      if (window.location.href.includes("index.html"))
+      if (window.location.href.includes("Robot1.html"))
       {
         //Here is the control logic for Max
         if (currentMode !== "direct")
@@ -833,7 +852,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Here is the data that will be displayed on the webpage that displays different status updates for the robots
     function updateStatus(parameter, value)
     {
-      if (window.location.href.includes("index.html") || window.location.href.includes("Robot2.html"))
+      if (window.location.href.includes("Robot1.html") || window.location.href.includes("Robot2.html"))
       {
         // The idea is that different robot statuses will be displayed based on the parameters below
         switch (parameter)
