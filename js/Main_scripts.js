@@ -268,6 +268,8 @@ document.addEventListener("DOMContentLoaded", function () {
   
                 // Object detection status
                 updateStatus("object", status.object);
+
+                //currentMode = status.mode;
               });
             });
 
@@ -311,8 +313,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
     }
-
-    //
 
     // This function is to make sure that the web application is connected with the robots before any modes can be used.
     function bluetoothCheck ()
@@ -420,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       }
       
-      updateStatus("Moving", "In dancing mode");
+      //updateStatus("Moving", "In dancing mode");
 
       // Here is the toastr alert letting users know that they selected dance control mode
       const Toast = Swal.mixin({
@@ -471,7 +471,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       }
 
-      updateStatus("Moving", "In Autonomous Mode");
+      //updateStatus("Moving", "In Autonomous Mode");
+      sendCommand("autonomous", 2);
 
       // Here is the toastr alert letting users know that they selected autonomous mode
       const Toast = Swal.mixin({
@@ -547,7 +548,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStatus("dance", random_dance);
 
         console.log("Selected dance is: ", random_dance);
-        sendCommand(random_dance);
+        sendCommand(random_dance, 2);
 
         setTimeout(() => {
           //Here we are returning to the previous mode after the robot completes it's dance
@@ -654,7 +655,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("The dance selected is: ", selected_Dance);
 
         // Here we are sending the dance command via Bluetooth to the robot
-        sendCommand(selected_Dance);
+        sendCommand(selected_Dance, 2);
 
       }
       else
