@@ -829,6 +829,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (Num_robot === 1)
         {
           // Need to add characteristic logic here for Max to recieve commands from the web application later
+          await max_characteristic.writeValue(encoder.encode(command));
           console.log("Sent movement command to Max: ", command);
         }
         else if(Num_robot === 2)
