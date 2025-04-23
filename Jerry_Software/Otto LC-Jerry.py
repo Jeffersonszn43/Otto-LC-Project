@@ -78,7 +78,8 @@ service = ble.gatts_register_services(((SERVICE_UUID, ((CHARACTERISTIC_UUID, blu
 def bt_irq(event, data):
     global conn_handle, mode
     if event == _IRQ_CENTRAL_CONNECT:
-        conn_handle, _, _ = data  # Here is where we are saving the connection handle after the connection is made via Bluetooth
+        conn_handle = data[0]  # Here is where we are saving the connection handle after the connection is made via Bluetooth
+        print("Connected!, conn_handle =", conn_handle)  # Status data debugging
         Jerry.sing(0)
         time.sleep_ms(500)
         Jerry.playGesture(1)
@@ -282,13 +283,14 @@ def show_status():
         "object": obstacle_avoidance(status_only=True) or "Unknown" # This makes sure that we are only getting the status string
     }
     
-    status_data = ujson.dumps(status)
     
     if conn_handle is not None:
         try:
-            ble.gatts_notify(conn_handle, handle, status_data.encode())
-        except:
-            print("Failed to send to send status over BLE")
+            status_data = ujson.dumps(status)
+            print("Sending status payload:", status_data)  # Status data debugging
+            ble.gatts_notify(conn_handle, handle, bytes(status_data, 'utf-8'))
+        except Exception as e:
+            print("Failed to send status over BLE", e)
             
 
 # Here we are performing the corresponding actions when the user selects a mode on the web application

@@ -817,7 +817,7 @@ document.addEventListener("DOMContentLoaded", function () {
         {
           // Here we are allowing Jerry to receive commands through characteristics
           await jerry_characteristic.writeValue(encoder.encode(command));
-          console.log("Sent movement command to Jerry: ", command);
+          console.log("Sent command to Jerry: ", command);
         }
       }
       catch (err)
