@@ -7,7 +7,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let bluetoothDevice = [];  // This variable will store the connected Bluetooth device
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
     let jerry_characteristic = null;
-    
+    let max_characteristic = null;
+
+
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
     const connectButton1 = document.getElementById("connectButton1");
@@ -62,9 +64,24 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],  
+              optionalServices: ["4fafc201-1fb5-459e-8fcc-c5c9c331914b"],  
             });
             bluetoothDevice.push(first_device);
+
+            const server = await first_device.gatt.connect();
+            const service = await server.getPrimaryService("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
+            max_characteristic = await service.getCharacteristic("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+            
+            await max_characteristic.startNotifications().then(() => {
+            max_characteristic.addEventListener("characteristicvaluechanged", (event) => 
+              {
+                //Add things here
+              const value = new TextDecoder().decode(event.target.value);
+              console.log("Received notification from Max:", value);
+              updateStatus("dance", value); // Show on UI under 'Current Dance'
+
+              });
+            });
 
 
             firstconnectionStatus.textContent = "Max Connection Status: Connected to Max";
@@ -182,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["4fafc201-1fb5-459e-8fcc-c5c9c331914b"],
+              optionalServices: ["f4afc201-1fb5-459e-8fcc-c5c9c331914b"],
             });
 
             bluetoothDevice.push(first_device);
@@ -655,8 +672,8 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("The dance selected is: ", selected_Dance);
 
         // Here we are sending the dance command via Bluetooth to the robot
-        sendCommand(selected_Dance, 2);
-
+        sendCommand(selected_Dance, 1);
+////////////////////////////////////////////////////////////////////////////
       }
       else
       {
