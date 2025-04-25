@@ -64,13 +64,13 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["4fafc201-1fb5-459e-8fcc-c5c9c331914b"],  
+              optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],  
             });
             bluetoothDevice.push(first_device);
 
             const server = await first_device.gatt.connect();
-            const service = await server.getPrimaryService("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-            max_characteristic = await service.getCharacteristic("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
+            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
             
             await max_characteristic.startNotifications().then(() => {
             max_characteristic.addEventListener("characteristicvaluechanged", (event) => 
@@ -205,8 +205,8 @@ document.addEventListener("DOMContentLoaded", function () {
             bluetoothDevice.push(first_device);
 
             const server = await first_device.gatt.connect();
-            const service = await server.getPrimaryService("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-            max_characteristic = await service.getCharacteristic("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
+            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
             
             await max_characteristic.startNotifications().then(() => {
             max_characteristic.addEventListener("characteristicvaluechanged", (event) => 
