@@ -19,8 +19,8 @@ Buzzer = 20
 # Here is where we are initializing and defining all of the pins of the sensors on the robot
 LDR_Pin = ADC(28)  # ADC pin for the Photoresistor.
 
-Trig_Pin = Pin(22, Pin.OUT) # Trigger pin on UltraSonic Distance Sensor.
-Echo_Pin = Pin(21, Pin.IN)  # Echo pin on the UltraSonic Distance Sensor.
+Trig_Pin = Pin(22, Pin.OUT) # Trigger pin on Ultrasonic Distance Sensor.
+Echo_Pin = Pin(21, Pin.IN)  # Echo pin on the Ultrasonic Distance Sensor.
 
 # Here we are initializing the 8x8 LED Matrix that will be used for displaying the different emotions of the robot.
 Din = 19
@@ -45,9 +45,10 @@ _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
 _IRQ_GATTS_WRITE = const(3)
 
-# Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix
+# Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix.
+# The values 1 and 2 are dummy values used to initalize the trigger and echo pins of the Ultrasonic Distance Sensor.
 Jerry = otto9.Otto9()
-Jerry.init(3, 7, 12, 10, True, 20, 22, 21, 19)
+Jerry.init(3, 7, 12, 10, True, 20, 1, 2, 19) 
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
@@ -69,7 +70,7 @@ SERVICE_UUID = bluetooth.UUID("fb483dbf-6b8d-4719-9290-624ec26d8bf3")
 CHARACTERISTIC_UUID = bluetooth.UUID("5c79fdd4-8db4-4d78-8122-04a67455f527")
 
 # This will be a tuple of registered services. This will also allow us to send notification data from the web application. 
-service = ble.gatts_register_services(((SERVICE_UUID, ((CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE | bluetooth.FLAG_NOTIFY),)),))
+service = ble.gatts_register_services(((SERVICE_UUID, ((CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE | bluetooth.FLAG_READ | bluetooth.FLAG_NOTIFY),)),))
 
 # Here is where we are properly unpacking data
 ((handle,),) = service
@@ -130,11 +131,12 @@ def get_distance ():
     time.sleep_us(10)
     Trig_Pin.low()
     
-    # Here is where we are measuring the duration of the echo signal with a 30ms timeout
-    duration = time_pulse_us(Echo_Pin, 1, 30000)
+    # Here is where we are measuring the duration of the echo signal with a 50ms timeout
+    duration = time_pulse_us(Echo_Pin, 1, 50000)
     
     # Here is a test to see if we get an echo signal
     if duration < 0:
+        #print("There is an error in getting an echo signal.")
         return -1
     
     # Here we are converting the echo signal to distance in cm using the speed of sound (343 m/s or 0.0343 cm)
@@ -191,7 +193,7 @@ def obstacle_avoidance(status_only=False):
     
     # This makes sure a string is also sent as status data to avoid "None" breaking the BLE connection
     if status_only:
-        return "No object in front of me"
+        return "no object in front of me"
         
                 
        
@@ -210,6 +212,7 @@ def direct_control(command):
         Jerry.turn(2, 1200, -1)
         
     elif command == "stop":
+        obstacle_avoidance()
         Jerry.home()
 
 def dance_mode(dance_name):
@@ -219,15 +222,19 @@ def dance_mode(dance_name):
     current_dance = Dance_Name
     
     if Dance_Name == "moonwalker":
+        obstacle_avoidance()
         Jerry.moonwalker(4, 1000, 25, 1)
         Jerry.moonwalker(4, 1000, 25, -1)
     elif Dance_Name == "crusaito":
+        obstacle_avoidance()
         Jerry.crusaito(3, 1000, 20, 1)
         Jerry.crusaito(3, 1000, 20, -1)
     elif Dance_Name == "flapping":
+        obstacle_avoidance()
         Jerry.flapping(3, 1000, 20, 1)
         Jerry.flapping(3, 1000, 20, -1)
     elif Dance_Name == "tiptoeswing":
+        obstacle_avoidance()
         Jerry.tiptoeSwing(3, 1000, 20)
 
 def autonomous_mode():
@@ -239,22 +246,31 @@ def autonomous_mode():
 
         Jerry.walk(10, 1200, 1) # 10 steps forward
     elif autonomous_state == 1:
+        obstacle_avoidance()
         Jerry.turn(2, 1200, 1) # Turning left
     elif autonomous_state == 2:
+        obstacle_avoidance()
         Jerry.playGesture(11) # Victory gesture
     elif autonomous_state == 3:
+        obstacle_avoidance()
         Jerry.walk(5, 1200, 1) # 5 steps forward
     elif autonomous_state == 4:
+        obstacle_avoidance()
         Jerry.turn(2, 1200, -1) # Turning right
     elif autonomous_state == 5:
+        obstacle_avoidance()
         Jerry.playGesture(11) # Victory gesture
     elif autonomous_state == 6:
+        obstacle_avoidance()
         Jerry.walk(6, 1200, 1) # 6 steps forward
     elif autonomous_state == 7:
+        obstacle_avoidance()
         Jerry.turn(2, 1200, -1) # Turning right
     elif autonomous_state == 8:
+        obstacle_avoidance()
         Jerry.playGesture(11) # Victory gesture
     elif autonomous_state == 9:
+        obstacle_avoidance()
         Jerry.playGesture(10) # Wave gesture
         Jerry.home()
         autonomous_state = -1
@@ -269,16 +285,22 @@ def interrupt_mode():
     
     status_emotions("angry")
     buzzer_status("Angry")
+    obstacle_avoidance()
     dance_mode("moonwalker")
+    
+    #
+    if previous_mode == "direct":
+        current_mode = previous_mode
+    elif previous_mode == "autonomous":
+        current_mode = "autonomous"
+        
     time.sleep_ms(400)
-    current_mode = previous_mode
+    
     
     
 # Add a way to show status conditions from here to the web application
 def show_status():
     status = {
-        "mode": current_mode,
-        "dance": current_dance,
         "light": light_levels() or "Unknown",
         "object": obstacle_avoidance(status_only=True) or "Unknown" # This makes sure that we are only getting the status string
     }
@@ -304,26 +326,27 @@ while True:
             status_emotions("happy")
             Jerry.sing("Happy")
             direct_control(command)
+            mode = None
             
         elif mode == "autonomous":
             current_mode = "autonomous"
             status_emotions("smallsurprise")
             buzzer_status("SmallSurprise")
             autonomous_mode()
-            current_mode = "idle"
+            #current_mode = "idle"
             
         elif mode == "interrupt":
             current_mode = "interrupt"
             status_emotions("angry")
             buzzer_status("Angry")
             interrupt_mode()
-            current_mode = "idle"
+            mode = None
         else:
             current_mode = "dance"
             status_emotions("happyopen")
             buzzer_status("superhappy")
             dance_mode(command)
-            current_mode = "idle"
+            mode = None
         
         # Here we are resetting the variable to make sure that no commands comming from the user repeats
         command = None
@@ -335,3 +358,5 @@ while True:
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
+
+

@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let bluetoothDevice = [];  // This variable will store the connected Bluetooth device
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
     let jerry_characteristic = null;
+    let max_characteristic = null;
+
+    //
+    let jerry_interval_polling = null;
     
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
@@ -55,6 +59,41 @@ document.addEventListener("DOMContentLoaded", function () {
       currentMode = newMode;
     }
 
+    // This will be the function responsible for reading the status data coming from the characteristic of Jerry.
+    function jerryStatusPolling () 
+    {
+      if (!jerry_characteristic)
+      {
+        console.error("Jerry's characteristic is not available for polling.");
+        return;
+      }  
+
+      // We are polling every 1000ms.
+      jerry_interval_polling = setInterval(async () => {
+        try {
+          const value = await jerry_characteristic.readValue();
+          const decoder = new TextDecoder();
+          const jsonString = decoder.decode(value); 
+          const status = JSON.parse(jsonString);
+
+          console.log("Polled status from Jerry: ", status);
+
+          if (status.light !== undefined)
+          {
+            updateStatus("light", status.light);
+          }
+          
+          if (status.object !== undefined)
+          {
+            updateStatus("object", status.object);
+          }    
+
+        } catch(error) {
+          console.error("No status from Jerry", error);
+        }
+      }, 1000);
+    }
+
     // Here is the the BLE connection logic where users are able to connect to the robots to interact with them using the web application
     if (window.location.href.includes("BothRobots.html"))
     {
@@ -62,9 +101,13 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],  
+              optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],  
             });
             bluetoothDevice.push(first_device);
+
+            const server = await first_device.gatt.connect();
+            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
+            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
 
 
             firstconnectionStatus.textContent = "Max Connection Status: Connected to Max";
@@ -107,42 +150,23 @@ document.addEventListener("DOMContentLoaded", function () {
           const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
           jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
 
+          jerryStatusPolling();
+
           // Here we are subscribing to the notifications (status data) coming from Jerry for the status dashboard
-          jerry_characteristic.startNotifications().then(() => {
-            jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
-              
-              // Here is where status updates coming from Jerry would happen and be displayed on the webpage.
-              const value = new TextDecoder().decode(event.target.value);
-              const status = JSON.parse(value);
-
-              // Mode status
-              updateStatus("mode", status.mode);
-
-              //Emotional status
-              if (status.mode === "direct")
-              {
-                updateStatus("emotion", "Happy");
-              }
-              else if (status.mode === "dance")
-              {
-                updateStatus("emotion", "Happy Open");
-              }
-              else if (status.mode === "autonomous")
-              {
-                updateStatus("emotion", "Small Surprise");
-              }
-              else if (status.mode === "interrupt")
-              {
-                updateStatus("emotion", "Angry");
-              }
-
-              // light status
-              updateStatus("light", status.light)
-
-              // Object detection status
-              updateStatus("object", status.object);
-            });
-          });
+          // jerry_characteristic.startNotifications().then(() => {
+            // jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
+              // 
+              //Here is where status updates coming from Jerry would happen and be displayed on the webpage.
+              // const value = new TextDecoder().decode(event.target.value);
+              // const status = JSON.parse(value);
+// 
+              //light status
+              // updateStatus("light", status.light);
+// 
+              //Object detection status
+              // updateStatus("object", status.object);
+            // });
+          // });
 
           secondconnectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
@@ -180,9 +204,14 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             let first_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["battery_service"],
+              optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],
             });
             bluetoothDevice.push(first_device);
+
+            const server = await first_device.gatt.connect();
+            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
+            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
+
             connectionStatus.textContent = "Max Connection Status: Connected to Max";
 
             const Toast = Swal.mixin({
@@ -214,45 +243,36 @@ document.addEventListener("DOMContentLoaded", function () {
             const server = await second_device.gatt.connect();
             const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
             jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
+            
+            jerryStatusPolling();
 
             // Here is where we are subscribing to notifications (status data) coming from Jerry for the status dashboard
-            jerry_characteristic.startNotifications().then(() => {
-              jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
-              
-                // Here is where status updates coming from Jerry would happen and be displayed on the webpage.
-                const value = new TextDecoder().decode(event.target.value);
-                const status = JSON.parse(value);
-  
-                // Mode status
-                updateStatus("mode", status.mode);
-  
-                //Emotional status
-                if (status.mode === "direct")
-                {
-                  updateStatus("emotion", "Happy");
-                }
-                else if (status.mode === "dance")
-                {
-                  updateStatus("emotion", "Happy Open");
-                }
-                else if (status.mode === "autonomous")
-                {
-                  updateStatus("emotion", "Small Surprise");
-                }
-                else if (status.mode === "interrupt")
-                {
-                  updateStatus("emotion", "Angry");
-                }
-  
-                // light status
-                updateStatus("light", status.light)
-  
-                // Object detection status
-                updateStatus("object", status.object);
-
-                //currentMode = status.mode;
-              });
-            });
+            // jerry_characteristic.startNotifications().then(() => {
+              // jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
+              // 
+                //Here is where status updates coming from Jerry would happen and be displayed on the webpage.
+                // const value = new TextDecoder().decode(event.target.value);
+// 
+                // try {
+                  // const status = JSON.parse(value);
+                  //this is for debugging
+                  // console.log("Here is the status: ", status);
+// 
+                  //light status
+                  // updateStatus("light", status.light);
+                    // 
+                  //Object detection status
+                  // updateStatus("object", status.object);
+              //  
+// 
+                // } catch (e) {
+                  // console.error("There was an error parsing the JSON status data from Jerry: ", e);
+// 
+                // }
+  // 
+                // 
+              // });
+            // });
 
             connectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
@@ -350,7 +370,9 @@ document.addEventListener("DOMContentLoaded", function () {
         danceSelection.style.display = "none";
 
       }
-      updateStatus("Moving", "Idle"); 
+
+      updateStatus("mode", "Direct Control");
+      updateStatus("emotion", "Happy"); 
 
       // Here is the toastr alert letting users know that they selected direct control mode
       const Toast = Swal.mixin({
@@ -366,7 +388,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       Toast.fire({
         icon: "success",
-        title: "Direct control Mode was activated!"
+        title: "Direct control mode was activated!"
       });
 
     });
@@ -401,7 +423,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       }
       
-      //updateStatus("Moving", "In dancing mode");
+      updateStatus("mode", "Dance");
+      updateStatus("emotion", "Happy Open");
 
       // Here is the toastr alert letting users know that they selected dance control mode
       const Toast = Swal.mixin({
@@ -452,7 +475,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       }
 
-      //updateStatus("Moving", "In Autonomous Mode");
+      updateStatus("mode", "Autonomous");
+      updateStatus("emotion", "Small Surprise");
       sendCommand("autonomous", 2);
 
       // Here is the toastr alert letting users know that they selected autonomous mode
@@ -501,6 +525,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         previousMode = currentMode;
         changeMode("interrupt");
+        updateStatus("mode", "Interrupt");
+        updateStatus("emotion", "Angry");
 
         //This will hide certain information on the webpage that is meant to not be shown in this instance
         if (window.location.href.includes("index.html"))
@@ -825,10 +851,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Failed to send this command: ", err);
       }
 
-      // replace this later on when the software for the robots are done
-      // bluetoothDevice.forEach(device =>{
-        // console.log("The command was sent to " + device.name + ":", command);
-      // });
+      
     }
     
     // Here is the data that will be displayed on the webpage that displays different status updates for the robots
@@ -841,6 +864,12 @@ document.addEventListener("DOMContentLoaded", function () {
         {
           case "mode":
             document.getElementById("modeStatus").textContent = "Mode Status: " + value;
+
+            // This if statement is used to clear the dashboard of the dance performed by the robot if the robot is not in dance or interrupt mode
+            if (value !== "Dance Mode" && value !== "Interrupt Mode")
+            {
+              document.getElementById("danceStatus").textContent = "Current Dance:";
+            }  
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
@@ -866,6 +895,12 @@ document.addEventListener("DOMContentLoaded", function () {
           case "mode":
             document.getElementById("modeStatus").textContent = "Mode Status: " + value;
             document.getElementById("mode_Status").textContent = "Mode Status: " + value;
+
+            // This if statement is used to clear the dashboard of the dance performed by the robot if the robot is not in dance or interrupt mode
+            if (value !== "Dance Mode" && value !== "Interrupt Mode")
+            {
+              document.getElementById("danceStatus").textContent = "Current Dance:";
+            }
             break;
           case "emotion":
             document.getElementById("emotionStatus").textContent = "Emotional Status: " + value;
