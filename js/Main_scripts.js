@@ -59,40 +59,35 @@ document.addEventListener("DOMContentLoaded", function () {
       currentMode = newMode;
     }
 
-    // This will be the function responsible for reading the status data coming from the characteristic of Jerry.
-    function jerryStatusPolling () 
+    // This function will be responsible for the BLE notifications of status data coming from Jerry. 
+    function jerryStatusUpdate(event) 
     {
-      if (!jerry_characteristic)
-      {
-        console.error("Jerry's characteristic is not available for polling.");
-        return;
-      }  
+      try {
+        const value = new TextDecoder().decode(event.target.value).trim();
 
-      // We are polling every 1000ms.
-      jerry_interval_polling = setInterval(async () => {
-        try {
-          const value = await jerry_characteristic.readValue();
-          const decoder = new TextDecoder();
-          const jsonString = decoder.decode(value); 
-          const status = JSON.parse(jsonString);
+        if (!value)
+        {
+          console.warn("The notifications coming from Jerry are empty.");
+        } 
+        
+        const status =JSON.parse(value);
+        console.log("Here are the BLE notifications coming from Jerry: ", status);
 
-          console.log("Polled status from Jerry: ", status);
-
-          if (status.light !== undefined)
-          {
-            updateStatus("light", status.light);
-          }
-          
-          if (status.object !== undefined)
-          {
-            updateStatus("object", status.object);
-          }    
-
-        } catch(error) {
-          console.error("No status from Jerry", error);
+        if(status.light !== undefined)
+        {
+          updateStatus("light", status.light);
         }
-      }, 1000);
+        
+        if (status.object !== undefined)
+        {
+          updateStatus("object", status.object);
+        }  
+
+      } catch(e) {
+        console.error("There was an error parsing the BLE notification coming from Jerry: ", e);
+      }
     }
+        
 
     // Here is the the BLE connection logic where users are able to connect to the robots to interact with them using the web application
     if (window.location.href.includes("BothRobots.html"))
@@ -149,25 +144,11 @@ document.addEventListener("DOMContentLoaded", function () {
           const server = await second_device.gatt.connect();
           const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
           jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
-
-          jerryStatusPolling();
-
-          // Here we are subscribing to the notifications (status data) coming from Jerry for the status dashboard
-          // jerry_characteristic.startNotifications().then(() => {
-            // jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
-              // 
-              //Here is where status updates coming from Jerry would happen and be displayed on the webpage.
-              // const value = new TextDecoder().decode(event.target.value);
-              // const status = JSON.parse(value);
-// 
-              //light status
-              // updateStatus("light", status.light);
-// 
-              //Object detection status
-              // updateStatus("object", status.object);
-            // });
-          // });
-
+          
+          // Here is where we are subscribing to notifications (status data) coming from Jerry for the status dashboard.
+          await jerry_characteristic.startNotifications();
+          jerry_characteristic.addEventListener("characteristicvaluechanged", jerryStatusUpdate);
+          
           secondconnectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
           const Toast = Swal.mixin({
@@ -243,37 +224,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const server = await second_device.gatt.connect();
             const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
             jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
-            
-            jerryStatusPolling();
 
-            // Here is where we are subscribing to notifications (status data) coming from Jerry for the status dashboard
-            // jerry_characteristic.startNotifications().then(() => {
-              // jerry_characteristic.addEventListener('characteristicvaluechange', (event) => {
-              // 
-                //Here is where status updates coming from Jerry would happen and be displayed on the webpage.
-                // const value = new TextDecoder().decode(event.target.value);
-// 
-                // try {
-                  // const status = JSON.parse(value);
-                  //this is for debugging
-                  // console.log("Here is the status: ", status);
-// 
-                  //light status
-                  // updateStatus("light", status.light);
-                    // 
-                  //Object detection status
-                  // updateStatus("object", status.object);
-              //  
-// 
-                // } catch (e) {
-                  // console.error("There was an error parsing the JSON status data from Jerry: ", e);
-// 
-                // }
-  // 
-                // 
-              // });
-            // });
-
+            // Here is where we are subscribing to notifications (status data) coming from Jerry for the status dashboard.
+            await jerry_characteristic.startNotifications();
+            jerry_characteristic.addEventListener("characteristicvaluechanged", jerryStatusUpdate);
+        
             connectionStatus.textContent = "Jerry Connection Status: Connected to Jerry";
 
             const Toast = Swal.mixin({
