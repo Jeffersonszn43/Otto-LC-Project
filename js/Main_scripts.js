@@ -518,6 +518,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (previousMode === "direct")
           {
+            // These are responsible for returning the status dashboard information to what it was before the interrupt.
+            updateStatus("mode", "Direct Control");
+            updateStatus("emotion", "Happy"); 
+
+            // This line is to clear the dance performed before going back to the previous mode.
+            document.getElementById("danceStatus").textContent = "Current Dance:";
+
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "block";
@@ -552,6 +559,13 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (previousMode === "autonomous")
           {
+            // These are responsible for returning the status dashboard information to what it was before the interrupt.
+            updateStatus("mode", "Autonomous");
+            updateStatus("emotion", "Small Surprise");
+
+            // This line is to clear the dance performed before going back to the previous mode.
+            document.getElementById("danceStatus").textContent = "Current Dance:";
+
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "none";
