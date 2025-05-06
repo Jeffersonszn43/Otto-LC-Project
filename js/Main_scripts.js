@@ -8,9 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
     let jerry_characteristic = null;
     let max_characteristic = null;
-
-    //
-    let jerry_interval_polling = null;
     
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
@@ -566,6 +563,9 @@ document.addEventListener("DOMContentLoaded", function () {
             // This line is to clear the dance performed before going back to the previous mode.
             document.getElementById("danceStatus").textContent = "Current Dance:";
 
+            // Here we are sending the autonomous command to Jerry to make sure Jerry is back in that mode after the interrupt dance.
+            sendCommand("autonomous", 2);
+
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "none";
@@ -598,7 +598,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
           }
 
-        }, 15000);
+        }, 13000);
 
       }
       else

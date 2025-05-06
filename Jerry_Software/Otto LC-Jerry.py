@@ -277,26 +277,6 @@ def autonomous_mode():
     
     autonomous_state += 1
     
-def interrupt_mode():
-    global current_mode, previous_mode
-    
-    previous_mode = current_mode
-    current_mode = "interrupt"
-    
-    status_emotions("angry")
-    buzzer_status("Angry")
-    obstacle_avoidance()
-    dance_mode("moonwalker")
-    
-    #
-    if previous_mode == "direct":
-        current_mode = previous_mode
-    elif previous_mode == "autonomous":
-        current_mode = "autonomous"
-        
-    time.sleep_ms(400)
-    
-    
     
 # Add a way to show status conditions from here to the web application
 def show_status():
@@ -336,11 +316,18 @@ while True:
             #current_mode = "idle"
             
         elif mode == "interrupt":
+            previous_mode = current_mode
             current_mode = "interrupt"
             status_emotions("angry")
             buzzer_status("Angry")
-            interrupt_mode()
-            mode = None
+            obstacle_avoidance()
+            dance_mode()
+            if previous_mode == "direct":
+                current_mode = "direct"
+            else:
+                mode == "autonomous"
+                current_mode = "autonomous"
+                
         else:
             current_mode = "dance"
             status_emotions("happyopen")
