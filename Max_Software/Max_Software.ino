@@ -1,134 +1,273 @@
 /*
-  Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleNotify.cpp
-  Ported to Arduino ESP32 by Evandro Copercini
-  updated by chegewara and MoThunderz
+  This code was developed by Corey Chang and Jefferson Charles.
+  Inspiration:
+  Ebedded System Disign:
+  Professor:
+
+1) Include all libaries that will be used in this code.
 */
+
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
+#include <Wire.h>
+#include <Otto.h>
+#include <NewPing.h>
+/*
+2) Begin initialization for all the Pin variable connections
+   and object declaration from the library.
+*/
+#define LeftLeg 2
+#define RightLeg 17
+#define LeftFoot 4
+#define RightFoot 16
+#define Buzzer 5
+#define TRIG_PIN 14
+#define ECHO_PIN 13
+#define MAX_DISTANCE 100
 
-// Initialize all pointers
-BLEServer* pServer = NULL;                        // Pointer to the server
-BLECharacteristic* pCharacteristic_1 = NULL;      // Pointer to Characteristic 1
-BLECharacteristic* pCharacteristic_2 = NULL;      // Pointer to Characteristic 2
-BLEDescriptor *pDescr_1;                          // Pointer to Descriptor of Characteristic 1
-BLE2902 *pBLE2902_1;                              // Pointer to BLE2902 of Characteristic 1
-BLE2902 *pBLE2902_2;                              // Pointer to BLE2902 of Characteristic 2
+#define SERVICE_UUID "059c8d82-5664-4997-b54d-4d860bc5acf6"
+#define CHARACTERISTIC_UUID "8649501e-f8be-4203-96a8-611c67fdecf2"
 
-// Some variables to keep track on device connected
+String current_mode = "idle";
+String current_dance = "none";
+//String obstacle_Detection ="none";
+
+int autonomus_state =0;
+
+bool connected = false;
+
+BLEServer *pServer = NULL; //The BLE server (ESP32)
+BLECharacteristic *pCharacteristic = NULL; //The BLE characteristics (data point client can read/write)
+BLEDescriptor *pDescr_1;// Pointer to Descriptor of Characteristic 1
+BLE2902 *pBLE2902_1;// Pointer to BLE2902 of Characteristic 1
 bool deviceConnected = false;
-bool oldDeviceConnected = false;
 
-// Variable that will continuously be increased and written to the client
-uint32_t value = 0;
+Adafruit_SSD1306 display(128, 32, &Wire, -1); //Initializing display object for Display
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
 
-// See the following for generating UUIDs:
-// https://www.uuidgenerator.net/
-// UUIDs used in this example:
-#define SERVICE_UUID          "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID_1 "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-#define CHARACTERISTIC_UUID_2 "1c95d5e3-d8f7-413a-bf3d-7a2e5d7be87e"
+Otto Max; //This initialize object as Max!
 
-// Callback function that is called whenever a client is connected or disconnected
-class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
-      deviceConnected = true;
-    };
+// --- BLE Callbacks ---
+class MyServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    deviceConnected = true;
+    Serial.println("Web App connected via BLE");
+    Max.sing(S_connection);
+  }
 
-    void onDisconnect(BLEServer* pServer) {
-      deviceConnected = false;
-    }
+  void onDisconnect(BLEServer* pServer) {
+    deviceConnected = false;
+    Serial.println("Web App disconnected");
+    Max.sing(S_disconnection);
+    BLEDevice::startAdvertising();  // keep advertising
+  }
 };
+void direct_Control(String cmd){
+  if (cmd == "forward"){
+    Max.walk(2,1000,1);
+    delay(10);
+  }
+  else if (cmd == "left") {
+    Max.turn(3,1000,1);//3 steps turning LEFT
+    delay(10);
+  }
+  else if (cmd == "right") {
+    Max.turn(3,1000,-1);//3 steps turning RIGHT
+    delay(10);
+  }
+  else if (cmd == "stop") {
+    Max.walk(2,1000,-1);
+    delay(10);
+  }
+  Max.home();
+}
+// --- Dance Command from Web App ---
+void dance_Mode(String cmd) {
+  if (cmd == "Moon Walker") {
+    current_mode = "dance";
+    current_dance = "Moon Walker";
+    updateDisplay();
+    playStatusSound();
+    Max.moonwalker(3, 1000, 25,1); //LEFT
+    delay(10);
+    Max.moonwalker(3, 1000, 25,-1); //RIGHT
+    delay(10);
+  } else if (cmd == "Crusaito") {
+    current_mode = "dance";
+    current_dance = "Crusaito";
+    updateDisplay();
+    playStatusSound();
+    Max.crusaito(2, 1000, 20,1);
+    delay(10);
+    Max.crusaito(2, 1000, 20,-1);
+    delay(10);
+  } else if (cmd == "Flapping") {
+    current_mode = "dance";
+    current_dance = "Flapping";
+    updateDisplay();
+    playStatusSound();
+    Max.flapping(2, 1000, 20,1);
+    delay(10);
+    Max.flapping(2, 1000, 20,-1);
+    delay(10);
+  } else if (cmd == "Tip Toe Swing") {
+    current_mode = "dance";
+    current_dance = "Tip Toe Swing";
+    updateDisplay();
+    playStatusSound();
+    Max.tiptoeSwing(2, 1000, 20);
+    delay(10);
+  } else {
+    current_mode = "idle";
+    Max.home();
+  }
+  current_mode = "idle";
+  updateDisplay(); //move this in if statements
+  Max.home(); // try this spot for home.
+  danceStatusToWeb();
+}
+
+// --- OLED Display Update ---
+void updateDisplay() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.println("Mode: " + current_mode);
+  display.println("Dance: " + current_dance);
+  display.display();
+}
+
+// --- Buzzer Status Sound ---
+void playStatusSound() {
+  if (current_mode == "dance") Max.sing(S_happy);
+  else if (current_mode == "autonomous") Max.sing(S_surprise);
+  else if (current_mode == "interrupt") Max.sing(S_confused);
+  else Max.sing(S_connection);
+}
+
+// --- BLE Data Receive Handler ---
+class MyCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic* pCharacteristic) {
+    std::string rxValue = pCharacteristic->getValue();
+    if (rxValue.length() > 0) {
+      String cmd = String(rxValue.c_str());
+      Serial.println("Command from Web: " + cmd);
+      dance_Mode(cmd);
+      direct_Control(cmd);
+      autonomous_Mode();
+      //interupt(cmd);
+    }
+  }
+};
+
+// --- Sensor Data Send ---
+// void sendStatusToWeb() {
+//   if (deviceConnected) {
+//     int distance = sonar.ping_cm();
+//     String data = "mode:" + current_mode + ";dance:" + current_dance + ";distance:" + String(distance);
+//     pCharacteristic->setValue(data.c_str());
+//     pCharacteristic->notify(); // Send update to client
+//   }
+// }
+
+// --- Sensor Data Send ---
+// void sensorStatusToWeb() {
+//   if (deviceConnected) {
+//     int distance = sonar.ping_cm();
+//     String data = distance:"+ String(distance)";
+//     pCharacteristic->setValue(data.c_str());
+//     pCharacteristic->notify(); // Send update to client
+//   }
+// }
+
+//Dance Data
+void danceStatusToWeb() {
+  if (deviceConnected) {
+    String data = current_dance;
+    pCharacteristic->setValue(data.c_str());
+    pCharacteristic->notify(); // Send update to client
+  }
+}
+
+
+// --- Obstacle Avoidance Logic ---
+void autonomous_Mode() {
+  int distance = sonar.ping_cm();
+  if (distance > 0 && distance < 20) {
+    Max.sing(S_surprise);
+    delay(10);
+    Max.playGesture(OttoConfused);
+    delay(10);
+    Max.walk(2, 1000, -1); // Move back
+    delay(10);
+    Max.turn(3, 1000, 1);  // Turn right
+    delay(10);
+  } else {
+    Max.walk(1, 1000, 1);  // Walk forward
+    delay(10);
+    
+  }
+  //current_mode = "autonomus";
+}
+
+
 
 void setup() {
   Serial.begin(115200);
 
-  // Create the BLE Device, name of device
-  BLEDevice::init("ESP32");
-
-  // Create the BLE Server
+  // BLE
+  BLEDevice::init("MAX");
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
 
-  // Create the BLE Service
-  BLEService *pService = pServer->createService(SERVICE_UUID);
-
-  // Create a BLE Characteristic
-  pCharacteristic_1 = pService->createCharacteristic(
-                      CHARACTERISTIC_UUID_1,
-                      BLECharacteristic::PROPERTY_NOTIFY
-                    );                   
-
-  pCharacteristic_2 = pService->createCharacteristic(
-                      CHARACTERISTIC_UUID_2,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |                      
-                      BLECharacteristic::PROPERTY_NOTIFY
-                    );  
-
+  BLEService* pService = pServer->createService(SERVICE_UUID);
+  pCharacteristic = pService->createCharacteristic(
+    CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ |
+    BLECharacteristic::PROPERTY_WRITE |
+    BLECharacteristic::PROPERTY_NOTIFY
+  );
   // Create a BLE Descriptor  
   pDescr_1 = new BLEDescriptor((uint16_t)0x2901);
   pDescr_1->setValue("A very interesting variable");
-  pCharacteristic_1->addDescriptor(pDescr_1);
+  pCharacteristic->addDescriptor(pDescr_1);
 
   // Add the BLE2902 Descriptor because we are using "PROPERTY_NOTIFY"
   pBLE2902_1 = new BLE2902();
   pBLE2902_1->setNotifications(true);                 
-  pCharacteristic_1->addDescriptor(pBLE2902_1);
+  pCharacteristic->addDescriptor(pBLE2902_1);
 
-  pBLE2902_2 = new BLE2902();
-  pBLE2902_2->setNotifications(true);
-  pCharacteristic_2->addDescriptor(pBLE2902_2);
-
-  // Start the service
+  pCharacteristic->setCallbacks(new MyCallbacks());
+  pCharacteristic->setValue("Ready");
   pService->start();
 
-  // Start advertising
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(false);
   pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
   BLEDevice::startAdvertising();
   Serial.println("Waiting a client connection to notify...");
+
+  // Display
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  updateDisplay();
+
+  // Otto Init
+  Max.init(LeftLeg, RightLeg, LeftFoot, RightFoot, true, Buzzer);
+  Max.home();
+  Max.sing(S_connection);
 }
 
+
 void loop() {
-    // notify changed value
-    if (deviceConnected) {
-      // pCharacteristic_1 is an integer that is increased with every second
-      // in the code below we send the value over to the client and increase the integer counter
-      pCharacteristic_1->setValue(value);
-      pCharacteristic_1->notify();
-      value++;
-
-      // pCharacteristic_2 is a std::string (NOT a String). In the code below we read the current value
-      // write this to the Serial interface and send a different value back to the Client
-      // Here the current value is read using getValue() 
-      std::string rxValue = pCharacteristic_2->getValue();
-      Serial.print("Characteristic 2 (getValue): ");
-      Serial.println(rxValue.c_str());
-
-      // Here the value is written to the Client using setValue();
-      String txValue = "String with random value from Server: " + String(random(1000));
-      pCharacteristic_2->setValue(txValue.c_str());
-      Serial.println("Characteristic 2 (setValue): " + txValue);
-
-      // In this example "delay" is used to delay with one second. This is of course a very basic 
-      // implementation to keep things simple. I recommend to use millis() for any production code
-      delay(1000);
-    }
-    // The code below keeps the connection status uptodate:
-    // Disconnecting
-    if (!deviceConnected && oldDeviceConnected) {
-        delay(500); // give the bluetooth stack the chance to get things ready
-        pServer->startAdvertising(); // restart advertising
-        Serial.println("start advertising");
-        oldDeviceConnected = deviceConnected;
-    }
-    // Connecting
-    if (deviceConnected && !oldDeviceConnected) {
-        // do stuff here on connecting
-        oldDeviceConnected = deviceConnected;
-    }
+  if (current_mode == "autonomous") {
+    autonomous_Mode();
+  }
+  //sensorStatusToWeb();
+  delay(1000);
 }
