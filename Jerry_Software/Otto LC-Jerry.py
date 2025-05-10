@@ -8,6 +8,7 @@ import bluetooth
 import struct
 import ujson
 from micropython import const
+import urandom
 
 # Here we are initializing the Servo and Buzzer pins
 LeftLeg = 3
@@ -32,7 +33,6 @@ Orientation = 3
 
 # Here are the global variables needed
 current_mode = "idle"
-current_dance = "none"
 previous_mode = "idle"
 mode = None
 autonomous_state = 0
@@ -217,10 +217,7 @@ def direct_control(command):
 
 def dance_mode(dance_name):
     Dance_Name = dance_name.lower().replace(" ", "")
-    global current_dance
-    
-    current_dance = Dance_Name
-    
+        
     if Dance_Name == "moonwalker":
         obstacle_avoidance()
         Jerry.moonwalker(4, 1000, 25, 1)
@@ -238,13 +235,12 @@ def dance_mode(dance_name):
         Jerry.tiptoeSwing(3, 1000, 20)
 
 def autonomous_mode():
-    
     global autonomous_state
     
     if autonomous_state == 0:
         obstacle_avoidance()
 
-        Jerry.walk(10, 1200, 1) # 10 steps forward
+        Jerry.walk(5, 1200, 1) # 5 steps forward
     elif autonomous_state == 1:
         obstacle_avoidance()
         Jerry.turn(2, 1200, 1) # Turning left
@@ -262,7 +258,7 @@ def autonomous_mode():
         Jerry.playGesture(11) # Victory gesture
     elif autonomous_state == 6:
         obstacle_avoidance()
-        Jerry.walk(6, 1200, 1) # 6 steps forward
+        Jerry.walk(5, 1200, 1) # 5 steps forward
     elif autonomous_state == 7:
         obstacle_avoidance()
         Jerry.turn(2, 1200, -1) # Turning right
@@ -304,7 +300,7 @@ while True:
         if command == "forward" or command == "left" or command == "right" or command == "stop":
             current_mode = "direct"
             status_emotions("happy")
-            Jerry.sing("Happy")
+            buzzer_status("Happy")
             direct_control(command)
             mode = None
             
@@ -313,7 +309,6 @@ while True:
             status_emotions("smallsurprise")
             buzzer_status("SmallSurprise")
             autonomous_mode()
-            #current_mode = "idle"
             
         elif mode == "interrupt":
             previous_mode = current_mode
@@ -321,12 +316,18 @@ while True:
             status_emotions("angry")
             buzzer_status("Angry")
             obstacle_avoidance()
-            dance_mode()
+            time.sleep_ms(500)
+            # Here is the list of dances that will be randomly selected for Jerry to do once it enters into interrupt mode
+            dance_options = ["moonwalker", "crusaito", "flapping", "tiptoeswing"]
+            selected_dance = urandom.choice(dance_options)
+            dance_mode(selected_dance)
+            
             if previous_mode == "direct":
                 current_mode = "direct"
             else:
                 mode == "autonomous"
                 current_mode = "autonomous"
+            mode = None
                 
         else:
             current_mode = "dance"
@@ -338,7 +339,6 @@ while True:
         # Here we are resetting the variable to make sure that no commands comming from the user repeats
         command = None
     
-            
     # Here is where the the status data of Jerry will be shown on the web application dashboard  
     show_status()
     

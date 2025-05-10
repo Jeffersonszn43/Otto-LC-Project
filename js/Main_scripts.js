@@ -11,8 +11,11 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
+    const disconnectButton = document.getElementById("disconnectButton");
     const connectButton1 = document.getElementById("connectButton1");
+    const disconnectButton1 = document.getElementById("disconnectButton1");
     const connectButton2 = document.getElementById("connectButton2");
+    const disconnectButton2 = document.getElementById("disconnectButton2");
     const firstconnectionStatus = document.getElementById("connectionStatus1");
     const secondconnectionStatus = document.getElementById("connectionStatus2");
     const connectionStatus = document.getElementById("connectionStatus");
@@ -170,8 +173,91 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error("Connection Error: ", error);
           secondconnectionStatus.textContent = "Jerry Connection Status: There was an error connecting to Jerry!";
         }
+
+
         
       });
+
+      // Here will be the logic for users to disconnect from the two robots.
+      disconnectButton1.addEventListener("click", async function () {
+        try {
+          if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+            {
+              bluetoothDevice[0].gatt.disconnect();
+
+              connectionStatus.textContent = "Max Connection Status: Disconnected from Max";
+
+              const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.onmouseenter = Swal.stopTimer;
+                  toast.onmouseleave = Swal.resumeTimer;
+                }
+              });
+              Toast.fire({
+                icon: "success",
+                title: "Disconnected from Max!"
+              });
+
+              // This will clear the status dashboard of the web application
+              document.getElementById("modeStatus").textContent = "Mode:";
+              document.getElementById("emotionStatus").textContent = "Emotional Status:";
+              document.getElementById("lightStatus").textContent = "Room Light Level:";
+              document.getElementById("objectStatus").textContent = "Obstacle Detection:";
+              document.getElementById("danceStatus").textContent = "Current Dance:";
+            }
+
+        }
+        catch (error)
+        {
+          console.error("Connection Error: ", error);
+          firstconnectionStatus.textContent = "Max Connection Status: There was an error connecting to Max!";
+
+        }
+      });
+
+      disconnectButton2.addEventListener("click", async function () {
+        try {
+          if(bluetoothDevice[1] && bluetoothDevice[1].gatt.connected)
+          {
+            bluetoothDevice[1].gatt.disconnect();
+            connectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+              }
+            });
+            Toast.fire({
+              icon: "success",
+              title: "Disconnected from Jerry!"
+            });
+            // This will clear the status dashboard of the web application
+            document.getElementById("mode_Status").textContent = "Mode:";
+            document.getElementById("emotion_Status").textContent = "Emotional Status:";
+            document.getElementById("light_Status").textContent = "Room Light Level:";
+            document.getElementById("object_Status").textContent = "Obstacle Detection:";
+            document.getElementById("dance_Status").textContent = "Current Dance:";
+          }
+
+        }
+        catch(error)
+        {
+          console.error("Connection Error: ", error);
+          secondconnectionStatus.textContent = "Jerry Connection Status: There was an error connecting to Jerry!";
+
+        }
+      });
+
     }
     else
     {
@@ -263,6 +349,92 @@ document.addEventListener("DOMContentLoaded", function () {
             
         }
 
+      });
+
+      // Here is where we are creating the disconnect button giving users the option to disconnect from Jerry.
+      disconnectButton.addEventListener("click", async function () {
+        try {
+          if (window.location.href.includes("index.html"))
+          {
+            if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+            {
+              bluetoothDevice[0].gatt.disconnect();
+
+              connectionStatus.textContent = "Max Connection Status: Disconnected from Max";
+
+              const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.onmouseenter = Swal.stopTimer;
+                  toast.onmouseleave = Swal.resumeTimer;
+                }
+              });
+              Toast.fire({
+                icon: "success",
+                title: "Disconnected from Max!"
+              });
+
+              // This will clear the status dashboard of the web application
+              document.getElementById("modeStatus").textContent = "Mode:";
+              document.getElementById("emotionStatus").textContent = "Emotional Status:";
+              document.getElementById("lightStatus").textContent = "Room Light Level:";
+              document.getElementById("objectStatus").textContent = "Obstacle Detection:";
+              document.getElementById("danceStatus").textContent = "Current Dance:";
+            }  
+            
+
+          }
+          else if (window.location.href.includes("Robot2.html"))
+          {
+            if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+            {
+              bluetoothDevice[0].gatt.disconnect();
+
+              connectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
+
+              const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.onmouseenter = Swal.stopTimer;
+                  toast.onmouseleave = Swal.resumeTimer;
+                }
+              });
+              Toast.fire({
+                icon: "success",
+                title: "Disconnected from Jerry!"
+              });
+
+              // This will clear the status dashboard of the web application
+              document.getElementById("modeStatus").textContent = "Mode:";
+              document.getElementById("emotionStatus").textContent = "Emotional Status:";
+              document.getElementById("lightStatus").textContent = "Room Light Level:";
+              document.getElementById("objectStatus").textContent = "Obstacle Detection:";
+              document.getElementById("danceStatus").textContent = "Current Dance:";
+            }           
+
+          }    
+
+        }
+        catch (error)
+        {
+          console.error("Connection Error: ", error);
+          if (window.location.href.includes("index.html"))
+          {
+            connectionStatus.textContent = "Max Connection Status: There was an error disconnecting from Max!";
+          }
+          else if (window.location.href.includes("Robot2.html"))
+          {
+            connectionStatus.textContent = "Jerry Connection Status: There was an error disconnecting from Jerry!";
+          }
+        }
       });
 
     }
@@ -449,7 +621,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    interrupt_Mode.addEventListener("click", function () {
+    interrupt_Mode.addEventListener("click", async function () {
       // Here we are making sure that the user is connected to the robots via Bluetooth
       if (!bluetoothCheck())
       {
@@ -500,28 +672,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        //Here we are randomly selecting a dance for the robot to perform
-        const dance_options = Array.from(danceList.options).map(options => options.value);
-        const random_dance = dance_options[Math.floor(Math.random() * dance_options.length)];
-
-        updateStatus("dance", random_dance);
-
-        console.log("Selected dance is: ", random_dance);
-        sendCommand(random_dance, 2);
+        sendCommand("interrupt", 2);
 
         setTimeout(() => {
-          //Here we are returning to the previous mode after the robot completes it's dance
-          changeMode(previousMode);
 
           if (previousMode === "direct")
           {
+            changeMode("direct");
             // These are responsible for returning the status dashboard information to what it was before the interrupt.
             updateStatus("mode", "Direct Control");
             updateStatus("emotion", "Happy"); 
-
             // This line is to clear the dance performed before going back to the previous mode.
             document.getElementById("danceStatus").textContent = "Current Dance:";
-
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "block";
@@ -529,14 +691,11 @@ document.addEventListener("DOMContentLoaded", function () {
             else if (window.location.href.includes("Robot2.html"))
             {
               arrowControl.style.display = "block";
-
             }
             else if (window.location.href.includes("BothRobots.html"))
             {
               allControl.style.display = "block";
-
             }
-
             // Toastr alert letting users know what mode the robot is returning back to
             const Toast = Swal.mixin({
               toast: true,
@@ -556,16 +715,14 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (previousMode === "autonomous")
           {
+            changeMode("autonomous");
             // These are responsible for returning the status dashboard information to what it was before the interrupt.
             updateStatus("mode", "Autonomous");
             updateStatus("emotion", "Small Surprise");
-
             // This line is to clear the dance performed before going back to the previous mode.
             document.getElementById("danceStatus").textContent = "Current Dance:";
-
             // Here we are sending the autonomous command to Jerry to make sure Jerry is back in that mode after the interrupt dance.
             sendCommand("autonomous", 2);
-
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "none";
@@ -573,13 +730,11 @@ document.addEventListener("DOMContentLoaded", function () {
             else if (window.location.href.includes("Robot2.html"))
             {
               arrowControl.style.display = "none";
-
             }
             else if (window.location.href.includes("BothRobots.html"))
             {
               allControl.style.display = "none";
             }
-
             // Toastr alert letting users know what mode the robot is returning back to
             const Toast = Swal.mixin({
               toast: true,
@@ -598,7 +753,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
           }
 
-        }, 13000);
+        }, 17000);
 
       }
       else
