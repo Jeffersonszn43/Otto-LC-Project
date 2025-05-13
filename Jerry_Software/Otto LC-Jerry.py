@@ -36,6 +36,7 @@ current_mode = "idle"
 previous_mode = "idle"
 mode = None
 autonomous_state = 0
+selected_dance = ""
 
 # This global variable is responsible for storing the connection handle when the device made a connection over Bluetooth
 conn_handle = None
@@ -281,6 +282,10 @@ def show_status():
         "object": obstacle_avoidance(status_only=True) or "Unknown" # This makes sure that we are only getting the status string
     }
     
+    # This will send the dance that is performed only in interrupt mode to the web application status dashboard
+    if current_mode == "interrupt":
+        status["dance"] = selected_dance
+    
     
     if conn_handle is not None:
         try:
@@ -318,14 +323,15 @@ while True:
             obstacle_avoidance()
             time.sleep_ms(500)
             # Here is the list of dances that will be randomly selected for Jerry to do once it enters into interrupt mode
-            dance_options = ["moonwalker", "crusaito", "flapping", "tiptoeswing"]
+            dance_options = ["Moon Walker", "Crusaito", "Flapping", "Tip Toe Swing"]
             selected_dance = urandom.choice(dance_options)
+            show_status()
             dance_mode(selected_dance)
             
             if previous_mode == "direct":
                 current_mode = "direct"
             else:
-                mode == "autonomous"
+                mode = "autonomous"
                 current_mode = "autonomous"
             mode = None
                 
