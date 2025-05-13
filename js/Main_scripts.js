@@ -4,7 +4,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Here are global variables
     let currentMode = "none";   // Possibly have to change later when robot software is done
-    let bluetoothDevice = [];  // This variable will store the connected Bluetooth device
+    let jerry_device = null;  // This will be the variable for the Bluetooth device for Max.
+    let max_device = null;  // This will be the variable for the Bluetooth device for Jerry.
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
     let jerry_characteristic = null;
     let max_characteristic = null;
@@ -94,13 +95,13 @@ document.addEventListener("DOMContentLoaded", function () {
     {
       connectButton1.addEventListener("click", async function () {
         try {
-            let first_device = await navigator.bluetooth.requestDevice ({
+            max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
               optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],  
             });
-            bluetoothDevice.push(first_device);
-
-            const server = await first_device.gatt.connect();
+            
+            // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
+            const server = await max_device.gatt.connect();
             const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
             max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
 
@@ -133,15 +134,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       connectButton2.addEventListener("click", async function () {
         try {
-          let second_device = await navigator.bluetooth.requestDevice({
+          jerry_device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
             optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Here is the service UUID for Jerry
   
           });
-          bluetoothDevice.push(second_device);
 
           // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
-          const server = await second_device.gatt.connect();
+          const server = await jerry_device.gatt.connect();
           const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
           jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
           
@@ -181,12 +181,13 @@ document.addEventListener("DOMContentLoaded", function () {
       // Here will be the logic for users to disconnect from the two robots.
       disconnectButton1.addEventListener("click", async function () {
         try {
-          if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+          if(max_device && max_device.gatt.connected)
             {
-              bluetoothDevice[0].gatt.disconnect();
+              max_device.gatt.disconnect();
 
-              connectionStatus.textContent = "Max Connection Status: Disconnected from Max";
-
+              firstconnectionStatus.textContent = "Max Connection Status: Disconnected from Max";
+              
+              // This will be the alert letting users know that they disconnected from Max.
               const Toast = Swal.mixin({
                 toast: true,
                 position: "top-end",
@@ -203,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Disconnected from Max!"
               });
 
-              // This will clear the status dashboard of the web application
+              // This will clear the status dashboard of the web application once the user disconnects from the robot.
               document.getElementById("modeStatus").textContent = "Mode:";
               document.getElementById("emotionStatus").textContent = "Emotional Status:";
               document.getElementById("lightStatus").textContent = "Room Light Level:";
@@ -222,10 +223,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
       disconnectButton2.addEventListener("click", async function () {
         try {
-          if(bluetoothDevice[1] && bluetoothDevice[1].gatt.connected)
+          if(jerry_device && jerry_device.gatt.connected)
           {
-            bluetoothDevice[1].gatt.disconnect();
-            connectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
+            jerry_device.gatt.disconnect();
+            secondconnectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
+
+            // This will be the alert letting users know that they disconnected from Jerry.
             const Toast = Swal.mixin({
               toast: true,
               position: "top-end",
@@ -241,7 +244,8 @@ document.addEventListener("DOMContentLoaded", function () {
               icon: "success",
               title: "Disconnected from Jerry!"
             });
-            // This will clear the status dashboard of the web application
+
+            // This will clear the status dashboard of the web application once the user disconnects from the robot.
             document.getElementById("mode_Status").textContent = "Mode:";
             document.getElementById("emotion_Status").textContent = "Emotional Status:";
             document.getElementById("light_Status").textContent = "Room Light Level:";
@@ -266,13 +270,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (window.location.href.includes("index.html"))
           {
-            let first_device = await navigator.bluetooth.requestDevice ({
+            max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
               optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],
             });
-            bluetoothDevice.push(first_device);
 
-            const server = await first_device.gatt.connect();
+            const server = await max_device.gatt.connect();
             const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
             max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
 
@@ -297,14 +300,13 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (window.location.href.includes("Robot2.html"))
           {
-            let second_device = await navigator.bluetooth.requestDevice({
+            jerry_device = await navigator.bluetooth.requestDevice({
               acceptAllDevices: true,
               optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Service UUID for Jerry
             });
-            bluetoothDevice.push(second_device);
 
             // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
-            const server = await second_device.gatt.connect();
+            const server = await jerry_device.gatt.connect();
             const service = await server.getPrimaryService("fb483dbf-6b8d-4719-9290-624ec26d8bf3");
             jerry_characteristic = await service.getCharacteristic("5c79fdd4-8db4-4d78-8122-04a67455f527");
 
@@ -356,9 +358,9 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           if (window.location.href.includes("index.html"))
           {
-            if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+            if(max_device && max_device.gatt.connected)
             {
-              bluetoothDevice[0].gatt.disconnect();
+              max_device.gatt.disconnect();
 
               connectionStatus.textContent = "Max Connection Status: Disconnected from Max";
 
@@ -390,9 +392,9 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (window.location.href.includes("Robot2.html"))
           {
-            if(bluetoothDevice[0] && bluetoothDevice[0].gatt.connected)
+            if(jerry_device && jerry_device.gatt.connected)
             {
-              bluetoothDevice[0].gatt.disconnect();
+              jerry_device.gatt.disconnect();
 
               connectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
 
@@ -442,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is to make sure that the web application is connected with the robots before any modes can be used.
     function bluetoothCheck ()
     {
-      if (!bluetoothDevice || bluetoothDevice.length === 0)
+      if (!max_device && !jerry_device)
       {
         const Toast = Swal.mixin({
           toast: true,
@@ -933,7 +935,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is responsible for sending the user commands via Bluetooth to the robots
     async function sendCommand(command, Num_robot) 
     {
-      if (bluetoothDevice.length === 0)
+      if ((Num_robot === 1 && !max_device) || (Num_robot === 2 && !jerry_device))
       {
         const Toast = Swal.mixin({
           toast: true,
@@ -948,7 +950,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         Toast.fire({
           icon: "warning",
-          title: "You must be connected to the robots first!"
+          title: "You must be connected to both robots first!"
         });
         return;
       }
@@ -970,9 +972,9 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log("Sent command to Jerry: ", command);
         }
       }
-      catch (err)
+      catch (error)
       {
-        console.error("Failed to send this command: ", err);
+        console.error("Failed to send this command: ", error);
       }
 
       
