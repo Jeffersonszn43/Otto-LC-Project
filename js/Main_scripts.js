@@ -84,6 +84,11 @@ document.addEventListener("DOMContentLoaded", function () {
           updateStatus("object", status.object);
         }  
 
+        if (status.dance !== undefined)
+        {
+          updateStatus("dance", status.dance);
+        }  
+
       } catch(e) {
         console.error("There was an error parsing the BLE notification coming from Jerry: ", e);
       }
