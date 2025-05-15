@@ -102,13 +102,13 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],  
+              optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],  
             });
             
             // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
             const server = await max_device.gatt.connect();
-            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
-            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
+            const service = await server.getPrimaryService("126b5985-42b7-42dc-8503-ce1ea5ab29d6");
+            max_characteristic = await service.getCharacteristic("292065c8-e04b-4b2a-807f-f9616a9dc230");
 
 
             firstconnectionStatus.textContent = "Max Connection Status: Connected to Max";
@@ -277,12 +277,12 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
-              optionalServices: ["059c8d82-5664-4997-b54d-4d860bc5acf6"],
+              optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],
             });
 
             const server = await max_device.gatt.connect();
-            const service = await server.getPrimaryService("059c8d82-5664-4997-b54d-4d860bc5acf6");
-            max_characteristic = await service.getCharacteristic("8649501e-f8be-4203-96a8-611c67fdecf2");
+            const service = await server.getPrimaryService("126b5985-42b7-42dc-8503-ce1ea5ab29d6");
+            max_characteristic = await service.getCharacteristic("292065c8-e04b-4b2a-807f-f9616a9dc230");
 
             connectionStatus.textContent = "Max Connection Status: Connected to Max";
 
