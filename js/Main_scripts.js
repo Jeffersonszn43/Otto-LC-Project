@@ -1038,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("emotion_Status").textContent = "Emotional Status: " + value;
             break;
           case "light":
-            document.getElementById("lightStatus").textContent = "Room Light Level: " + value;
+            //document.getElementById("lightStatus").textContent = "Room Light Level: " + value;
             document.getElementById("light_Status").textContent = "Room Light Level: " + value;
             break;
           case "object":
