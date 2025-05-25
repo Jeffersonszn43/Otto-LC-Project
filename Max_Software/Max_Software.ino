@@ -18,7 +18,7 @@ Otto Max;   // This variable will be the object used for the movement commnds.
 #define RightLeg 17
 #define LeftFoot 4
 #define RightFoot 16
-#define Buzzer 4
+#define Buzzer 5
 
 // Pins for the Ultrasonic Distance Sensor (HC-SR04)
 #define Triggerpin 14
@@ -47,7 +47,5 @@ void loop()
   delay(1000);  // delay is in milliseconds.
   Max.walk(4, 2000, -1);  // Otto will walk 2 steps backward for 2000ms.
   delay(1000);
-  Max.moonwalker(4, 2000, 25, 1);
-  Max.home(); // To reset the servos.
-}
 
+}

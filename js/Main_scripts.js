@@ -93,7 +93,41 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("There was an error parsing the BLE notification coming from Jerry: ", e);
       }
     }
+
+    // This function will be responsible for the BLE notifications of status data coming from Max.
+    function maxStatusUpdate (event) 
+    {
+      try {
+        const value = new TextDecoder().decode(event.target.value).trim();
+
+        if (!value)
+        {
+          console.warn("The notifications coming from Max are empty.");
+        } 
         
+        const status =JSON.parse(value);
+        console.log("Here are the BLE notifications coming from Max: ", status);
+
+        // if(status.light !== undefined)
+        // {
+          // updateStatus("light", status.light);
+        // }
+        
+        if (status.object !== undefined)
+        {
+          updateStatus("object", status.object);
+        }  
+
+        if (status.dance !== undefined)
+        {
+          updateStatus("dance", status.dance);
+        }  
+
+      } catch(e) {
+        console.error("There was an error parsing the BLE notifications coming from Max: ", e);
+      }
+
+    }
 
     // Here is the the BLE connection logic where users are able to connect to the robots to interact with them using the web application
     if (window.location.href.includes("BothRobots.html"))
@@ -104,11 +138,21 @@ document.addEventListener("DOMContentLoaded", function () {
               acceptAllDevices: true,
               optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],  
             });
+
+            // Here is a check to see if the GATT server is already connected.
+            if (!max_device.gatt.connect)
+            {
+              await max_device.gatt.connect();
+            }   
             
             // Here is where we are going to set up the GATT server that will have a profile with a service that has characteristics that has the status data we need for the dashboard.
-            const server = await max_device.gatt.connect();
+            const server = max_device.gatt;
             const service = await server.getPrimaryService("126b5985-42b7-42dc-8503-ce1ea5ab29d6");
             max_characteristic = await service.getCharacteristic("292065c8-e04b-4b2a-807f-f9616a9dc230");
+
+            // Here is where we are subscribing to notifications (status data) coming from Max for the status dashboard.
+            await max_characteristic.startNotifications();
+            max_characteristic.addEventListener("characteristicvaluechanged", maxStatusUpdate);
 
 
             firstconnectionStatus.textContent = "Max Connection Status: Connected to Max";
@@ -212,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
               // This will clear the status dashboard of the web application once the user disconnects from the robot.
               document.getElementById("modeStatus").textContent = "Mode:";
               document.getElementById("emotionStatus").textContent = "Emotional Status:";
-              document.getElementById("lightStatus").textContent = "Room Light Level:";
+              //document.getElementById("lightStatus").textContent = "Room Light Level:";
               document.getElementById("objectStatus").textContent = "Obstacle Detection:";
               document.getElementById("danceStatus").textContent = "Current Dance:";
             }
@@ -280,9 +324,19 @@ document.addEventListener("DOMContentLoaded", function () {
               optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],
             });
 
-            const server = await max_device.gatt.connect();
+            // Here is a check to see if the GATT server is already connected.
+            if (!max_device.gatt.connected)
+            {
+              await max_device.gatt.connect();
+            }  
+
+            const server = max_device.gatt;
             const service = await server.getPrimaryService("126b5985-42b7-42dc-8503-ce1ea5ab29d6");
             max_characteristic = await service.getCharacteristic("292065c8-e04b-4b2a-807f-f9616a9dc230");
+
+            // Here is where we are subscribing to notifications (status data) coming from Max for the status dashboard.
+            await max_characteristic.startNotifications();
+            max_characteristic.addEventListener("characteristicvaluechanged", maxStatusUpdate);
 
             connectionStatus.textContent = "Max Connection Status: Connected to Max";
 
@@ -385,10 +439,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Disconnected from Max!"
               });
 
+              //
+              // keyboardControl.style.display = "none";
+              // danceSelection.style.display = "none";
+              // arrowControl.style.display = "none";
+              // allControl.style.display = "none";
+
+
               // This will clear the status dashboard of the web application
               document.getElementById("modeStatus").textContent = "Mode:";
               document.getElementById("emotionStatus").textContent = "Emotional Status:";
-              document.getElementById("lightStatus").textContent = "Room Light Level:";
+              //document.getElementById("lightStatus").textContent = "Room Light Level:";
               document.getElementById("objectStatus").textContent = "Obstacle Detection:";
               document.getElementById("danceStatus").textContent = "Current Dance:";
             }  
@@ -608,6 +669,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       updateStatus("mode", "Autonomous");
       updateStatus("emotion", "Small Surprise");
+
+      // Here we are sending the autonomous mode command specifically to Max.
+      sendCommand("autonomous", 1);
+
+      // Here we are sending the autonomous mode command specifically to Jerry.
       sendCommand("autonomous", 2);
 
       // Here is the toastr alert letting users know that they selected autonomous mode
@@ -679,6 +745,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+        // Here we are sending the interrupt mode command to Max.
+        sendCommand("interrupt", 1);
+
+        // Here we are sending the interrupt mode command to Jerry.
         sendCommand("interrupt", 2);
 
         setTimeout(() => {
@@ -686,11 +756,14 @@ document.addEventListener("DOMContentLoaded", function () {
           if (previousMode === "direct")
           {
             changeMode("direct");
+
             // These are responsible for returning the status dashboard information to what it was before the interrupt.
             updateStatus("mode", "Direct Control");
             updateStatus("emotion", "Happy"); 
+
             // This line is to clear the dance performed before going back to the previous mode.
             document.getElementById("danceStatus").textContent = "Current Dance:";
+
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "block";
@@ -723,13 +796,20 @@ document.addEventListener("DOMContentLoaded", function () {
           else if (previousMode === "autonomous")
           {
             changeMode("autonomous");
+
             // These are responsible for returning the status dashboard information to what it was before the interrupt.
             updateStatus("mode", "Autonomous");
             updateStatus("emotion", "Small Surprise");
+
             // This line is to clear the dance performed before going back to the previous mode.
             document.getElementById("danceStatus").textContent = "Current Dance:";
-            // Here we are sending the autonomous command to Jerry to make sure Jerry is back in that mode after the interrupt dance.
+
+            // Here we are sending the autonomous mode command to Max to make sure Max is back in that mode after the interrupt dance.
+            sendCommand("autonomous", 1);
+
+            // Here we are sending the autonomous mode command to Jerry to make sure Jerry is back in that mode after the interrupt dance.
             sendCommand("autonomous", 2);
+
             if (window.location.href.includes("index.html"))
             {
               keyboardControl.style.display = "none";
@@ -792,7 +872,10 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStatus("dance", selected_Dance);
         console.log("The dance selected is: ", selected_Dance);
 
-        // Here we are sending the dance command via Bluetooth to the robot
+        // Here we are sending the dance command via Bluetooth to Max
+        sendCommand(selected_Dance, 1);
+
+        // Here we are sending the dance command via Bluetooth to Jerry
         sendCommand(selected_Dance, 2);
 
       }
@@ -940,7 +1023,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is responsible for sending the user commands via Bluetooth to the robots
     async function sendCommand(command, Num_robot) 
     {
-      if ((Num_robot === 1 && !max_device) || (Num_robot === 2 && !jerry_device))
+      if ((Num_robot === 1 && !max_device) && (Num_robot === 2 && !jerry_device))
       {
         const Toast = Swal.mixin({
           toast: true,
@@ -967,13 +1050,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (Num_robot === 1)
         {
-          // Need to add characteristic logic here for Max to recieve commands from the web application later
+          // Here we are allowing Max to receive commands through characteristics
+          await max_characteristic.writeValue(encoder.encode(command));
+
           console.log("Sent movement command to Max: ", command);
         }
         else if(Num_robot === 2)
         {
           // Here we are allowing Jerry to receive commands through characteristics
           await jerry_characteristic.writeValue(encoder.encode(command));
+
           console.log("Sent command to Jerry: ", command);
         }
       }
