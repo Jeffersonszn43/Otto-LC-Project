@@ -1,9 +1,14 @@
 # Here is the software that will allow users to have control over the Otto LC robot(Jerry) using the web application.
-# Written By: Jefferson Charles
+# Written By: Corey Chang and Jefferson Charles
 
 # Here are the libraries needed for the program
 import otto9, time
 from machine import Pin, ADC, time_pulse_us
+import bluetooth
+import struct
+import ujson
+from micropython import const
+import urandom
 
 # Here we are initializing the Servo and Buzzer pins
 LeftLeg = 3
@@ -26,12 +31,81 @@ CS = 17
 # This is the orientation on the 8x8 LED Matrix. This will allow the LEDs on the Matrix to display things in a normal orientation on the robot.
 Orientation = 3
 
+# Here are the global variables needed
+current_mode = "idle"
+previous_mode = "idle"
+# mode = None
+autonomous_state = 0
+selected_dance = ""
+
+# This global variable is responsible for storing the connection handle when the device made a connection over Bluetooth
+conn_handle = None
+
+# Here we are defining the variables for the BLE IRQ constants that will have important events that will happen between the robot and the web application
+_IRQ_CENTRAL_CONNECT = const(1)
+_IRQ_CENTRAL_DISCONNECT = const(2)
+_IRQ_GATTS_WRITE = const(3)
+
 # Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix.
 # The values 1 and 2 are dummy values used to initalize the trigger and echo pins of the Ultrasonic Distance Sensor.
 Jerry = otto9.Otto9()
 Jerry.init(3, 7, 12, 10, True, 20, 1, 2, 19) 
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
+
+# Here is where we are setting up BLE for the robot
+ble = bluetooth.BLE()
+ble.active(True)
+DEVICE_NAME = "Jerry_BLE"
+ble.config(gap_name=DEVICE_NAME)
+
+
+def adv_payload(name):
+    # Here we are creating an advertisement payload
+    name_bytes = name.encode()
+    return struct.pack("BB", len(name_bytes) + 1, 0x09) + name_bytes
+
+# Here is where we are setting up the UUIDs of the service and characterisitc of the BLE setup.
+SERVICE_UUID = bluetooth.UUID("fb483dbf-6b8d-4719-9290-624ec26d8bf3")
+CHARACTERISTIC_UUID = bluetooth.UUID("5c79fdd4-8db4-4d78-8122-04a67455f527")
+
+# This will be a tuple of registered services. This will also allow us to send notification data to the web application. 
+service = ble.gatts_register_services(((SERVICE_UUID, ((CHARACTERISTIC_UUID, bluetooth.FLAG_WRITE | bluetooth.FLAG_READ | bluetooth.FLAG_NOTIFY),)),))
+
+# Here is where we are properly unpacking data
+((handle,),) = service
+
+# Here is a function that will handle the connection and disconnection to the robot from the web application and reading commands written to the characteristic of the robot from the user.
+def bt_irq(event, data):
+    global conn_handle, mode
+    if event == _IRQ_CENTRAL_CONNECT:
+        conn_handle = data[0]  # Here is where we are saving the connection handle after the connection is made via Bluetooth
+        #print("Connected!, conn_handle =", conn_handle)
+        Jerry.sing(0)
+        time.sleep_ms(500)
+        Jerry.playGesture(1)
+        time.sleep_ms(500)
+        Jerry.home()
+    elif event == _IRQ_CENTRAL_DISCONNECT:
+        conn_handle = None # Here we are resetting the connection handle
+        Jerry.sing(1)
+        time.sleep_ms(500)
+        Jerry.playGesture(2)
+        time.sleep_ms(500)
+        Jerry.home()
+        
+        # Here we are advertising Jerry for users to reconnect to if they get disconnected to Jerry.
+        ble.gap_advertise(100, adv_payload(DEVICE_NAME))
+         
+    elif event == _IRQ_GATTS_WRITE:
+        # This variable will be responsible for saving the commands coming from users on the web application for the server (Jerry) to read through it's characteristics.
+        mode = ble.gatts_read(handle).decode().strip()
+
+# This is responsible for registered events that will occur through the Bluetooth connection between the robot and the web application.
+ble.irq(bt_irq)
+
+# Here is the start of where users are able to see and connect to jerry after 100us.
+ble.gap_advertise(100, adv_payload(DEVICE_NAME))
 
 
 # Here are the functions that will be responsible for the functionalities of the sensors.
@@ -99,7 +173,7 @@ def buzzer_status(status_noise):
     elif status_noise == "SmallSurprise":
         Jerry.sing(17)
 
-# Function that will allow the robot to implement obstacle avoidance in direct control and autonomous mode.
+# Function that will allow the robot to implement obstacle avoidance in direct control, dance mode, and autonomous mode.
 def obstacle_avoidance(status_only=False):
     detected_object = get_distance()
     
@@ -111,10 +185,10 @@ def obstacle_avoidance(status_only=False):
         Jerry.putMouth(20)
         Jerry.playGesture(5)
         time.sleep_ms(500)
-        #Make Jerry turn another direction and let the user continue to control it using direct control or autonomous mode.
+        # Make Jerry turn another direction and let the user continue to control it using direct control or autonomous mode.
         Jerry.turn(2, 1000, 1)
         time.sleep_ms(500)
-        #print("Object in front of me!")
+        # print("Object in front of me!")
     else:
         if status_only:
             return "No object in front of me"
@@ -202,7 +276,7 @@ def autonomous_mode():
     autonomous_state += 1
     
     
-# Add a way to show status conditions from here to the web application
+# This function is responsible for showing status consitions coming from the robot to the web application status dashboard. 
 def show_status():
     status = {
         "light": light_levels() or "Unknown",
@@ -217,7 +291,7 @@ def show_status():
     if conn_handle is not None:
         try:
             status_data = ujson.dumps(status)
-            print("Sending status payload:", status_data)  # Status data debugging
+            # print("Sending status payload:", status_data) # This was added to make sure that status data was coming from the robot
             ble.gatts_notify(conn_handle, handle, bytes(status_data, 'utf-8'))
         except Exception as e:
             print("Failed to send status over BLE", e)
@@ -272,11 +346,12 @@ while True:
         # Here we are resetting the variable to make sure that no commands comming from the user repeats
         command = None
     
-    # Here is where the the status data of Jerry will be shown on the web application dashboard  
+    # Here is where the the status data from Jerry will be shown on the web application dashboard  
     show_status()
     
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
+
 
 
