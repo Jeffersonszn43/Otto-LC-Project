@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let previousMode = "none"; // This will be the variable that holds the previous mode Otto was in when the user hits the interrupt button
     let jerry_characteristic = null;
     let max_characteristic = null;
+
+    // These boolean variables will be flags used to prevent functionalities of the web application from happening when a user disconnects from the robots.
+    let maxConnected = false;
+    let jerryConnected = false;
     
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
@@ -39,15 +43,18 @@ document.addEventListener("DOMContentLoaded", function () {
       {
         keyboardControl.style.display = "none";
       }
-      else if(danceSelection)
+
+      if(danceSelection)
       {
         danceSelection.style.display = "none";
       }
-      else if (arrowControl)
+
+      if (arrowControl)
       {
         arrowControl.style.display = "none";
       }
-      else if (allControl)
+
+      if (allControl)
       {
         allControl.style.display = "none";
       }
@@ -134,6 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
     {
       connectButton1.addEventListener("click", async function () {
         try {
+
+            // We are setting the bluetooth connection flag true indicating that the user connected to Max.
+            maxConnected = true;
+
             max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
               optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],  
@@ -183,6 +194,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       connectButton2.addEventListener("click", async function () {
         try {
+
+          // We are setting the bluetooth connection flag true indicating that the user connected to Jerry.
+          jerryConnected = true;
+
           jerry_device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
             optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Here is the service UUID for Jerry
@@ -232,6 +247,9 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           if(max_device && max_device.gatt.connected)
             {
+              // We are setting the bluetooth connection flag to false indicating that the user disconnected from Max.
+              maxConnected = false;
+
               max_device.gatt.disconnect();
 
               firstconnectionStatus.textContent = "Max Connection Status: Disconnected from Max";
@@ -252,6 +270,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon: "success",
                 title: "Disconnected from Max!"
               });
+
+              // This will make sure that text from the different control options are gone after the user disconnects from the Max.
+              hide ();
 
               // This will clear the status dashboard of the web application once the user disconnects from the robot.
               document.getElementById("modeStatus").textContent = "Mode:";
@@ -274,6 +295,9 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           if(jerry_device && jerry_device.gatt.connected)
           {
+            // We are setting the bluetooth connection flag to false indicating that the user disconnected from Jerry.
+            jerryConnected = false;
+
             jerry_device.gatt.disconnect();
             secondconnectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
 
@@ -293,6 +317,9 @@ document.addEventListener("DOMContentLoaded", function () {
               icon: "success",
               title: "Disconnected from Jerry!"
             });
+
+            // This will make sure that text from the different control options are gone after the user disconnects from the Jerry.
+            hide ();
 
             // This will clear the status dashboard of the web application once the user disconnects from the robot.
             document.getElementById("mode_Status").textContent = "Mode:";
@@ -319,6 +346,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (window.location.href.includes("index.html"))
           {
+            // We are setting the bluetooth connection flag true indicating that the user connected to Max.
+            maxConnected = true;
+
             max_device = await navigator.bluetooth.requestDevice ({
               acceptAllDevices: true,
               optionalServices: ["126b5985-42b7-42dc-8503-ce1ea5ab29d6"],
@@ -359,6 +389,9 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           else if (window.location.href.includes("Robot2.html"))
           {
+            // We are setting the bluetooth connection flag true indicating that the user connected to Jerry.
+            jerryConnected = true;
+
             jerry_device = await navigator.bluetooth.requestDevice({
               acceptAllDevices: true,
               optionalServices: ["fb483dbf-6b8d-4719-9290-624ec26d8bf3"],  // Service UUID for Jerry
@@ -419,6 +452,9 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             if(max_device && max_device.gatt.connected)
             {
+              // We are setting the bluetooth connection flag to false indicating that the user disconnected from Max.
+              maxConnected = false;
+
               max_device.gatt.disconnect();
 
               connectionStatus.textContent = "Max Connection Status: Disconnected from Max";
@@ -439,12 +475,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Disconnected from Max!"
               });
 
-              //
-              // keyboardControl.style.display = "none";
-              // danceSelection.style.display = "none";
-              // arrowControl.style.display = "none";
-              // allControl.style.display = "none";
-
+              // This will make sure that text from the different control options are gone after the user disconnects from the Max.
+              hide();
 
               // This will clear the status dashboard of the web application
               document.getElementById("modeStatus").textContent = "Mode:";
@@ -460,8 +492,11 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             if(jerry_device && jerry_device.gatt.connected)
             {
-              jerry_device.gatt.disconnect();
+              // We are setting the bluetooth connection flag to false indicating that the user disconnected from Jerry.
+              jerryConnected = false;
 
+              jerry_device.gatt.disconnect();
+            
               connectionStatus.textContent = "Jerry Connection Status: Disconnected from Jerry";
 
               const Toast = Swal.mixin({
@@ -479,6 +514,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon: "success",
                 title: "Disconnected from Jerry!"
               });
+
+              // This will make sure that text from the different control options are gone after the user disconnects from the Jerry.
+              hide ();
 
               // This will clear the status dashboard of the web application
               document.getElementById("modeStatus").textContent = "Mode:";
@@ -510,26 +548,79 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is to make sure that the web application is connected with the robots before any modes can be used.
     function bluetoothCheck ()
     {
-      if (!max_device && !jerry_device)
+      if (window.location.href.includes("BothRobots.html"))
       {
-        const Toast = Swal.mixin({
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "error",
-          title: "You must be connected to one of the robots or both robots to select a mode!"
-        });
-        return false;
+        if (!maxConnected || !jerryConnected)
+        {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+          Toast.fire({
+            icon: "error",
+            title: "You must be connected to both robots to select a mode!"
+          });
+          return false;
+
+        } 
+        return true; 
       }
-      return true;
+      else if(window.location.href.includes("index.html"))
+      {
+        if (!maxConnected)
+        {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+          Toast.fire({
+            icon: "error",
+            title: "You must be connected to Max to select a mode!"
+          });
+          return false;
+        }  
+        return true;
+      }  
+      else if (window.location.href.includes("Robot2.html"))
+      {
+        if (!jerryConnected)
+        {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+          Toast.fire({
+            icon: "error",
+            title: "You must be connected to Jerry to select a mode!"
+          });
+          return false;
+        }
+        return true;  
+      }
+      
+      // 
+      return false;
     }
 
     // Here is the different control logic for the different modes users are able to choose from
@@ -539,7 +630,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!bluetoothCheck())
       {
         return;
-      }
+      } 
 
       hide ();
       currentMode = "direct";
@@ -1023,25 +1114,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function is responsible for sending the user commands via Bluetooth to the robots
     async function sendCommand(command, Num_robot) 
     {
-      if ((Num_robot === 1 && !max_device) && (Num_robot === 2 && !jerry_device))
-      {
-        const Toast = Swal.mixin({
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "warning",
-          title: "You must be connected to both robots first!"
-        });
-        return;
-      }
 
       // Here is logic that will help to send the appropriate direct control commands to the robots.
       try {
