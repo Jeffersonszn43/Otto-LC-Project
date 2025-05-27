@@ -1,4 +1,4 @@
-# Here is the software that will allow users to have control over the Otto LC robot(Jerry) using the web application.
+# Here is the software that will have the control logic for the Otto LC robot(Jerry).
 # Written By: Jefferson Charles
 
 # Here are the libraries needed for the program
@@ -33,8 +33,7 @@ Jerry.init(3, 7, 12, 10, True, 20, 1, 2, 19)
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
-
-# Here are the functions that will be responsible for the functionalities of the sensors.
+# This function is responsible for the light sensor integration on Jerry
 def light_levels():
     sensor_value = LDR_Pin.read_u16()  # Here we are reading the ADC value (0 - 65535)
     
@@ -50,7 +49,7 @@ def light_levels():
     elif sensor_value <= 45 - deadzone:
         return "This room is bright!"
     
-
+# This function will be responsible for getting the distance values of the distance sensor
 def get_distance ():
     # Here we are sending a 10us pulse to trigger the sensor
     Trig_Pin.low()
@@ -64,213 +63,43 @@ def get_distance ():
     
     # Here is a test to see if we get an echo signal
     if duration < 0:
-        #print("There is an error in getting an echo signal.")
+        print("There is an error in getting an echo signal.")
         return -1
     
     # Here we are converting the echo signal to distance in cm using the speed of sound (343 m/s or 0.0343 cm)
     distance = (duration * 0.0343) / 2
     return distance
 
-# Function responsible for displaying the emotions of the robot on the 8x8 LED Matrix
-def status_emotions(emotion):
-    if emotion == "happy": 
-        Jerry.putMouth(10)
-    elif emotion == "surprise": 
-        Jerry.putMouth(14)
-    elif emotion == "happyopen": 
-        Jerry.putMouth(11)
-        Jerry.playGesture(1)
-    elif emotion == "angry":  
-        Jerry.putMouth(30)
-    elif emotion == "smallsurprise": 
-        Jerry.putMouth(15)
-    
 
-# Function that will be used to play status noises depending the robot's emotion
-def buzzer_status(status_noise):
-    if status_noise == "Happy": 
-        Jerry.sing(7)
-    elif status_noise == "Surprise": 
-        Jerry.sing(2)
-    elif status_noise == "superhappy":
-        Jerry.sing(8)
-    elif status_noise == "Angry": 
-        Jerry.sing(4)
-    elif status_noise == "SmallSurprise":
-        Jerry.sing(17)
-
-# Function that will allow the robot to implement obstacle avoidance in direct control and autonomous mode.
-def obstacle_avoidance(status_only=False):
+# Function that will allow the robot to implement obstacle avoidance during its movements
+def obstacle_avoidance():
     detected_object = get_distance()
     
     if detected_object != -1 and detected_object <= 30:
-        # This makes sure that the function will correctly send this string as status data for the dashboard
-        if status_only:
-            return "Object in front of me"
-        
+        print("Object in front of me")
         Jerry.putMouth(20)
         Jerry.playGesture(5)
         time.sleep_ms(500)
-        #Make Jerry turn another direction and let the user continue to control it using direct control or autonomous mode.
+        # This will make Jerry turn once it detects an object in front of it
         Jerry.turn(2, 1000, 1)
         time.sleep_ms(500)
-        #print("Object in front of me!")
     else:
-        if status_only:
-            return "No object in front of me"
-    
-    # This makes sure a string is also sent as status data to avoid "None" breaking the BLE connection
-    if status_only:
-        return "no object in front of me"
-        
-                
-       
-# Functions for the different modes on the web application
-def direct_control(command):
-    if command == "forward":
-        obstacle_avoidance()
-        Jerry.walk(2, 1200, 1)
-        
-    elif command == "left":
-        obstacle_avoidance()
-        Jerry.turn(2, 1200, 1)
-        
-    elif command == "right":
-        obstacle_avoidance()
-        Jerry.turn(2, 1200, -1)
-        
-    elif command == "stop":
-        obstacle_avoidance()
-        Jerry.home()
-
-def dance_mode(dance_name):
-    Dance_Name = dance_name.lower().replace(" ", "")
-        
-    if Dance_Name == "moonwalker":
-        obstacle_avoidance()
-        Jerry.moonwalker(4, 1000, 25, 1)
-        Jerry.moonwalker(4, 1000, 25, -1)
-    elif Dance_Name == "crusaito":
-        obstacle_avoidance()
-        Jerry.crusaito(3, 1000, 20, 1)
-        Jerry.crusaito(3, 1000, 20, -1)
-    elif Dance_Name == "flapping":
-        obstacle_avoidance()
-        Jerry.flapping(3, 1000, 20, 1)
-        Jerry.flapping(3, 1000, 20, -1)
-    elif Dance_Name == "tiptoeswing":
-        obstacle_avoidance()
-        Jerry.tiptoeSwing(3, 1000, 20)
-
-def autonomous_mode():
-    global autonomous_state
-    
-    if autonomous_state == 0:
-        obstacle_avoidance()
-
-        Jerry.walk(5, 1200, 1) # 5 steps forward
-    elif autonomous_state == 1:
-        obstacle_avoidance()
-        Jerry.turn(2, 1200, 1) # Turning left
-    elif autonomous_state == 2:
-        obstacle_avoidance()
-        Jerry.playGesture(11) # Victory gesture
-    elif autonomous_state == 3:
-        obstacle_avoidance()
-        Jerry.walk(5, 1200, 1) # 5 steps forward
-    elif autonomous_state == 4:
-        obstacle_avoidance()
-        Jerry.turn(2, 1200, -1) # Turning right
-    elif autonomous_state == 5:
-        obstacle_avoidance()
-        Jerry.playGesture(11) # Victory gesture
-    elif autonomous_state == 6:
-        obstacle_avoidance()
-        Jerry.walk(5, 1200, 1) # 5 steps forward
-    elif autonomous_state == 7:
-        obstacle_avoidance()
-        Jerry.turn(2, 1200, -1) # Turning right
-    elif autonomous_state == 8:
-        obstacle_avoidance()
-        Jerry.playGesture(11) # Victory gesture
-    elif autonomous_state == 9:
-        obstacle_avoidance()
-        Jerry.playGesture(10) # Wave gesture
-        Jerry.home()
-        autonomous_state = -1
-    
-    autonomous_state += 1
+        print("No object in front of me")
     
     
-# Add a way to show status conditions from here to the web application
+# This function is responsible for displaying status data from Jerry
 def show_status():
-    status = {
-        "light": light_levels() or "Unknown",
-        "object": obstacle_avoidance(status_only=True) or "Unknown" # This makes sure that we are only getting the status string
-    }
+    light = light_levels() or "Unknown"
     
-    # This will send the dance that is performed only in interrupt mode to the web application status dashboard
-    if current_mode == "interrupt":
-        status["dance"] = selected_dance
+    # This print statement will print how the robot interprets the light levels in the room it is in
+    print(light)
     
-    
-    if conn_handle is not None:
-        try:
-            status_data = ujson.dumps(status)
-            print("Sending status payload:", status_data)  # Status data debugging
-            ble.gatts_notify(conn_handle, handle, bytes(status_data, 'utf-8'))
-        except Exception as e:
-            print("Failed to send status over BLE", e)
+    # This function call is responsible for displaying the response of the robot when it encounters an obstacle
+    obstacle_avoidance()
             
 
 # Here we are performing the corresponding actions when the user selects a mode on the web application
 while True:
-        
-    if mode:
-        command = mode.lower().replace(" ", "")
-        # Here is the control logic where the robot will be in the different modes the web application offers depending on the mode chosen by the user.
-        if command == "forward" or command == "left" or command == "right" or command == "stop":
-            current_mode = "direct"
-            status_emotions("happy")
-            buzzer_status("Happy")
-            direct_control(command)
-            mode = None
-            
-        elif mode == "autonomous":
-            current_mode = "autonomous"
-            status_emotions("smallsurprise")
-            buzzer_status("SmallSurprise")
-            autonomous_mode()
-            
-        elif mode == "interrupt":
-            previous_mode = current_mode
-            current_mode = "interrupt"
-            status_emotions("angry")
-            buzzer_status("Angry")
-            obstacle_avoidance()
-            time.sleep_ms(500)
-            # Here is the list of dances that will be randomly selected for Jerry to do once it enters into interrupt mode
-            dance_options = ["Moon Walker", "Crusaito", "Flapping", "Tip Toe Swing"]
-            selected_dance = urandom.choice(dance_options)
-            show_status()
-            dance_mode(selected_dance)
-            
-            if previous_mode == "direct":
-                current_mode = "direct"
-            else:
-                mode = "autonomous"
-                current_mode = "autonomous"
-            mode = None
-                
-        else:
-            current_mode = "dance"
-            status_emotions("happyopen")
-            buzzer_status("superhappy")
-            dance_mode(command)
-            mode = None
-        
-        # Here we are resetting the variable to make sure that no commands comming from the user repeats
-        command = None
     
     # Here is where the the status data of Jerry will be shown on the web application dashboard  
     show_status()

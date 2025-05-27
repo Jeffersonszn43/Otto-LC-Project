@@ -34,7 +34,7 @@ Orientation = 3
 # Here are the global variables needed
 current_mode = "idle"
 previous_mode = "idle"
-# mode = None
+mode = None
 autonomous_state = 0
 selected_dance = ""
 
@@ -352,6 +352,8 @@ while True:
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
+
+
 
 
 
