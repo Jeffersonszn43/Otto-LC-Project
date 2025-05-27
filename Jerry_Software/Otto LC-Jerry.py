@@ -98,14 +98,55 @@ def show_status():
     obstacle_avoidance()
             
 
-# Here we are performing the corresponding actions when the user selects a mode on the web application
+# Here is where the main control logic for Jerry will be performed
+
+# Basic Movements
+Jerry.walk() # Walking forward
+Jerry.walk() # Walking backwards
+Jerry.turn() # Turning to the left
+Jerry.turn() # Turning to the right
+Jerry.bend() # Bending the left foot
+Jerry.bend() # Bending the right foot
+Jerry.home() # Makes the robot go to its default position
+time.sleep_ms(100)
+
+# Dances
+Jerry.shakeLeg() # Left
+Jerry.shakeLeg() # Right
+Jerry.moonwalker() # Left
+Jerry.moonwalker() # Right
+Jerry.crusaito() # Left
+Jerry.crusaito() # Right
+time.sleep_ms(100)
+Jerry.flapping() # Left
+Jerry.flapping() # Right
+time.sleep_ms(100)
+Jerry.swing()
+Jerry.tiptoeSwing()
+Jerry.jitter()
+Jerry.updown()
+Jerry.ascendingTurn()
+Jerry.jump()
+Jerry.home()
+time.sleep_ms(100)
+
+# Sounds
+
+# Gestures
+
+# Emotions
+
+
+# This loop will be responsible for displaying status data from the robot
 while True:
     
-    # Here is where the the status data of Jerry will be shown on the web application dashboard  
+    # Here is where the the status data of Jerry will be shown 
     show_status()
     
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
+
+
 
 
