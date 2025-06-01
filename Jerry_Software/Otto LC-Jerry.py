@@ -1,4 +1,4 @@
-# Here is the software that will have the control logic for the Otto LC robot(Jerry).
+# Here is the software that will have the control logic for the Otto LC robot(Jerry) for the Raspberry Pi Pico.
 # Written By: Jefferson Charles
 
 # Here are the libraries needed for the program
@@ -45,9 +45,11 @@ def light_levels():
     
     # Here we are observing the light levels of the room Jerry is in
     if sensor_value >= 56 + deadzone:
-        return "It is dark in this room!"
+        return "dark"
+        
     elif sensor_value <= 45 - deadzone:
-        return "This room is bright!"
+        return "bright"
+        
     
 # This function will be responsible for getting the distance values of the distance sensor
 def get_distance ():
@@ -80,73 +82,113 @@ def obstacle_avoidance():
         Jerry.putMouth(20)
         Jerry.playGesture(5)
         time.sleep_ms(500)
-        # This will make Jerry turn once it detects an object in front of it
+        # This will make Jerry walk back a little bit and turn once it detects an object in front of it
+        Jerry.walk(2, 1000, -1)
         Jerry.turn(2, 1000, 1)
         time.sleep_ms(500)
     else:
         print("No object in front of me")
-    
-    
-# This function is responsible for displaying status data from Jerry
-def show_status():
-    light = light_levels() or "Unknown"
-    
-    # This print statement will print how the robot interprets the light levels in the room it is in
-    print(light)
-    
-    # This function call is responsible for displaying the response of the robot when it encounters an obstacle
-    obstacle_avoidance()
             
 
-# Here is where the main control logic for Jerry will be performed
+# Here are the functions for the main control logic for Jerry
 
-# Basic Movements
-Jerry.walk() # Walking forward
-Jerry.walk() # Walking backwards
-Jerry.turn() # Turning to the left
-Jerry.turn() # Turning to the right
-Jerry.bend() # Bending the left foot
-Jerry.bend() # Bending the right foot
-Jerry.home() # Makes the robot go to its default position
-time.sleep_ms(100)
+# This function will be responsible for the movement options the robot can perform, while implementing obstacle avoidance
+def jerry_movements():
+    Jerry.walk(4, 1000, 1) # Walking forward
+    time.sleep_ms(200)
+    Jerry.walk(4, 1000, -1) # Walking backwards
+    time.sleep_ms(200)
+    Jerry.turn(2, 1000, 1) # Turning to the left
+    time.sleep_ms(200)
+    Jerry.turn(2, 1000, -1) # Turning to the right
+    time.sleep_ms(200)
+    Jerry.bend(1, 500, 1) # Bending the left foot
+    time.sleep_ms(200)
+    Jerry.bend(1, 2000, -1) # Bending the right foot
+    time.sleep_ms(200)
+    Jerry.home() # Makes the robot go to its default position
+    time.sleep_ms(100)
 
-# Dances
-Jerry.shakeLeg() # Left
-Jerry.shakeLeg() # Right
-Jerry.moonwalker() # Left
-Jerry.moonwalker() # Right
-Jerry.crusaito() # Left
-Jerry.crusaito() # Right
-time.sleep_ms(100)
-Jerry.flapping() # Left
-Jerry.flapping() # Right
-time.sleep_ms(100)
-Jerry.swing()
-Jerry.tiptoeSwing()
-Jerry.jitter()
-Jerry.updown()
-Jerry.ascendingTurn()
-Jerry.jump()
-Jerry.home()
-time.sleep_ms(100)
+# This function will be responsible for the robot dancing
+def jerry_dances():
+    Jerry.shakeLeg(1, 1500, 1) # Left
+    Jerry.shakeLeg(1, 2000, -1) # Right
+    Jerry.moonwalker(4, 1000, 25, 1) # Left
+    Jerry.moonwalker(4, 1000, 25, -1) # Right
+    Jerry.crusaito(3, 1000, 20, 1) # Left
+    Jerry.crusaito(3, 1000, 20, -1) # Right
+    time.sleep_ms(100)
+    Jerry.flapping(3, 1000, 20, 1) # Left
+    Jerry.flapping(3, 1000, 20, -1) # Right
+    time.sleep_ms(100)
+    Jerry.swing(3, 1000, 20)
+    Jerry.tiptoeSwing(3, 1000, 20)
+    Jerry.jitter(3, 1000, 20)
+    Jerry.updown(3, 1500, 20)
+    Jerry.ascendingTurn(3, 1000, 50)
+    Jerry.jump(1, 2000)
+    Jerry.home()
+    time.sleep_ms(100)
 
-# Sounds
+# This function is responsible for sounds that the robot can produce
+def jerry_sounds():
+    Jerry.sing(0) # Connection sound
+    Jerry.sing(1) # Disconnection sound
+    Jerry.sing(3) # OHOOH sound
+    Jerry.sing(18) # Buttonpressed sound
 
-# Gestures
+# This function is responsible for gestures performed by the robot
+def jerry_gestures():
+    Jerry.playGesture(0) # Happy gesture
+    time.sleep_ms(600)
+    Jerry.playGesture(2) # Sad gesture
+    time.sleep_ms(600)
+    Jerry.playGesture(11) # Victory gesture
+    time.sleep_ms(600)
+    Jerry.playGesture(3) # Sleeping gesture
+    time.sleep_ms(600)
 
-# Emotions
-
-
-# This loop will be responsible for displaying status data from the robot
-while True:
+# This function is responsible for displaying the emotions of the robot
+def jerry_emotions():
+    Jerry.putMouth(10) # Smile emotion
+    time.sleep_ms(700)
+    Jerry.putMouth(11) # Happyopen emotion
+    time.sleep_ms(700)
+    Jerry.putMouth(22) # Sad emotion
+    time.sleep_ms(700)
+    Jerry.putMouth(20) # Confused emotion
+    time.sleep_ms(700)    
     
-    # Here is where the the status data of Jerry will be shown 
-    show_status()
+# This loop will be responsible for 
+while True:
+    Jerry.home() # Sets the robot in its neutral position
+    time.sleep(1)
+    
+    current_light = light_levels() # Here will be the light sensor values produced by the robot
+    
+    # If the room the robot is in is dark, then the robot will perform these actions instead
+    if current_light == "dark":
+        Jerry.putMouth(24) # Sadclosed emotion
+        Jerry.sing(2) # Surprise sound
+        Jerry.playGesture(5) # Confused gesture
+        
+    # If there is enough light in the room the robot is currently in, then it will perform its movements    
+    elif current_light == "bright":
+        # This function call is responsible for the implementation of obstacle avoidance on the robot
+        obstacle_avoidance()
+        
+        jerry_movements()
+        time.sleep(1)
+        jerry_dances()
+        time.sleep(1)
+        jerry_sounds()
+        time.sleep(1)
+        jerry_gestures()
+        time.sleep(1)
+        jerry_emotions()
+        time.sleep(1)
     
     # Here we have a 500ms delay in the loop
     time.sleep_ms(500)
     
-
-
-
 
