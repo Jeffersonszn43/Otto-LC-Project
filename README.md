@@ -6,6 +6,7 @@
 - Dance Mode, where users can select a dance from a predefined list.
 - Autonomous Mode, where the robots will perform self-guided obstacle-avoiding movements.
 - Interrupt Mode, where the robots will do a short dance while in autonomous or direct control mode and will return to one of those two modes once the dance is finished.
+- A status dashborad that will display different status data about the robots. This includes the mode the robots are, light sensor status data from Jerry, obstacle detection from the robots, and the emotional status of the robots. 
 
 ##### The goal of this project was to design a custom robotic platform that will allow users to control our Otto LC robots - Max and Jerry. 
 
@@ -17,10 +18,12 @@
 
 ##### The project was built into two parts:
 
-- Designs for the web application for the control of the two Otto LC robots (Max and Jerry).
-- Designs that will be built to showcase the basic capabilities that the Otto LC robot is able to do. This part will be included in the final products that will be used to help students learn more about engineering.
+- Software for the web application for the control of the two Otto LC robots - Max and Jerry.
+- Software that will be built to showcase the basic capabilities that the Otto LC robot is able to do. This part will be included in the final products that will be used to help students learn more about engineering.
 
-##### The software that will allow users to have control over the two robots using the web application is completed for the Otto LC Jerry robot and the software for the Otto LC Max robot is under development. The software development for the basic movements of the Otto LC robots (Max and Jerry) is completed for Jerry and is also under development for Max. 
+##### The main software for the robots can be found in the `Jerry_Software` and `Max_Software` directories in the repository. We intended to create two programs for both of the robots. One program would be responsible for working with the web application for user control of the robots and the other program would showcase the capabilities of what the Otto LC robots we designed can do. The software that will allow users to have control over the two robots using the web application is completed for the Otto LC Jerry robot and the software for the Otto LC Max robot is under development. 
+
+##### The software written for Jerry was written in MicroPython and the software under development for Max will be written in C++. The design of Jerry included a Photoresistor that will be responisble for when Jerry will do its movements. If the room Jerry is in is dark, then the robot will do a certain gesture and display a certain emotion. When the room Jerry is in is bright, then the robot will do its walking and dancing movements along with displaying its different emotions with emotional gestures. 
 
 ## Hardware Compatibility:
 
@@ -57,8 +60,6 @@
 
 - [OttoDIYPython](https://github.com/Jeffersonszn43/Otto-LC-Project/releases/download/v1.0.0/OttoLCMicroPythonLibrary.zip)
 
-##### The files in the zip folder must be in the same directory as the Micropython program for the Otto LC (Jerry) robot. Instructions on how to bring the files over from your local file explorer to the file explorer of the Raspberry Pi Pico W or H can be found in the setup section above.
-
-## Project Structure:
+##### The files in the zip folder must be in the same directory as the Micropython program for the Otto LC Jerry robot. Instructions on how to bring the files over from your local file explorer to the file explorer of the Raspberry Pi Pico W or H can be found in the setup section above. 
 
 ## Acknowledgements:
