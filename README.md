@@ -30,12 +30,34 @@
 - Raspberry Pi Pico H
 
 #### Robots:
-- Max: Based on the ESP32
+- Max: Based on the ESP32 NodeMCU 32s
 - Jerry: Based on the Raspberry Pi Pico Microcontrollers 
 
-## Required Libraries:
-
 ## Setup:
+
+## Required Libraries:
+##### These are the libraries that will be needed to operate both robots:
+
+### For the ESP32 NodeMCU 32s (Arduino IDE):
+
+- `esp32` Board version: 2.0.17 by Espressif Systems
+- `Adafruit SSD1306` version: 2.5.13 
+- `Adafruit GFX Library` version: 1.11.11
+ 
+##### Here is the link to download the zip file needed to setup the ESP32Servo library in Arduino IDE: (https://github.com/Jeffersonszn43/Otto-LC-Project/releases/download/v3.0.6/ESP32Servo.zip)
+
+##### Next you will upload the zip file to Arduino IDE by going to Sketch -> Include Library -> then click on Add .ZIP Library. Then make sure in your Library Manager tab, you have the exact ESP32 servo library below:
+
+- `ESP32Servo` version: 3.0.6 by Kevin Harrington, John K. Bennett
+- `ESPSoftwareSerial` version: 8.1.0 
+- `NewPing` version: 1.9.7
+- `OttoDIYLib` version: 13.0.0
+
+### For the Raspberry Pi Pico Microcontrollers (Thonny):
+
+- [OttoDIYPython](https://github.com/Jeffersonszn43/Otto-LC-Project/releases/download/v1.0.0/OttoLCMicroPythonLibrary.zip)
+
+##### The files in the zip folder must be in the same directory as the Micropython program for the Otto LC (Jerry) robot. Instructions on how to bring the files over from your local file explorer to the file explorer of the Raspberry Pi Pico W or H can be found in the setup section above.
 
 ## Project Structure:
 
