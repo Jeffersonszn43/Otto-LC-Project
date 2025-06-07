@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let jerry_characteristic = null;
     let max_characteristic = null;
 
+    
 
     // Here are the variables for the UI elements on the webpage
     const connectButton = document.getElementById("connectButton");
