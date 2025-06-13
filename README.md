@@ -10,11 +10,11 @@
 
 ##### The goal of this project was to design a custom robotic platform that will allow users to control our Otto LC robots - Max and Jerry. 
 
-## Team Members:
+## Team Members
 ##### Corey Chang
 ##### Jefferson Charles
 
-## Project Components:
+## Project Components
 
 ##### The project was built into two parts:
 
@@ -29,7 +29,7 @@
 
 #### Otto LC Max Movement Software:
 
-## Hardware Compatibility:
+## Hardware Compatibility
 
 ##### The software we created for both parts of the project was designed to work on the Microcontrollers below:
 - ESP32 NodeMCU 32s
@@ -40,7 +40,7 @@
 - Max: Based on the ESP32 NodeMCU 32s
 - Jerry: Based on the Raspberry Pi Pico Microcontrollers 
 
-## Setup:
+## Setup
 
 #### Note: This section must have one or both of the robots wired and fully built to proceed with the steps below.
 
@@ -64,7 +64,7 @@
 6. Now that you have MicroPython setup on your Raspberry Pi Pico H, you must open the file explorer for the Pico and bring the contents of the OttoDIYPython library that you downloaded earlier to the file explorer of the Pico. Before you continue, you must make sure that the contents of the folder is unzipped and able to be brought over to the file explorer of the Pico. To open up the file explorer of the Pico you must go to View -> Files. If you selected the com port of the Pico on the bottom right, you should see a split window that shows the file explorer of the directory that you are in in your local computer on top and the file explorer of the Pico on the bottom. Locate where you downloaded the OttoDIYPython library and you are going to select all of the files in that folder. With all of the files selected, right click and select `Upload to /` to bring all of the files of the library to the file explorer of the Pico. 
 7. Now, you should be setup to start running the MicroPython Otto showcase movement program on Jerry. Go to `Jerry_Software` and download the `Otto LC-Jerry.py` program and bring the file to the file explorer of the Pico using the same method used for bringing the files of the Otto MicroPython library over from your local computer. Once that is completed, you should be ready to work with the Otto LC Jerry robot.    
 
-## Required Libraries:
+## Required Libraries
 ##### These are the libraries that will be needed to operate both robots:
 
 #### For the ESP32 NodeMCU 32s (Arduino IDE):
@@ -88,12 +88,12 @@
 
 ##### The files in the zip folder must be in the same directory as the MicroPython program for the Otto LC Jerry robot. Instructions on how to bring the files over from your local file explorer to the file explorer of the Raspberry Pi Pico W or H can be found in the setup section above.
 
-## Screenshot:
+## Screenshot
 
 ##### The Otto LC - Max and Jerry robots
 ![image](https://github.com/Jeffersonszn43/Otto-LC-Project/blob/main/assets/img/Otto%20LC-%20Max%20and%20Jerry.jpg)
 
-## Acknowledgements:
+## Acknowledgements
 
 ##### All of the software written and our Otto LC designs are based off OttoDIYLib, OttoDIYPython, and Otto LC below:
 
