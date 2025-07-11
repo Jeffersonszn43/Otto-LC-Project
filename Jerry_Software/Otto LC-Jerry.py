@@ -7,9 +7,9 @@ from machine import Pin, ADC, time_pulse_us
 
 # Here we are initializing the Servo and Buzzer pins
 LeftLeg = 3
-RightLeg = 7
+RightLeg = 13
 LeftFoot = 12
-RightFoot = 10
+RightFoot = 14
 Buzzer = 20
 
 # Here is where we are initializing and defining all of the pins of the sensors on the robot
