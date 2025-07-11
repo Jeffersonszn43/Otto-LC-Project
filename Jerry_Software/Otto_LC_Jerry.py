@@ -29,7 +29,7 @@ Orientation = 3
 # Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix.
 # The values 1 and 2 are dummy values used to initalize the trigger and echo pins of the Ultrasonic Distance Sensor.
 Jerry = otto9.Otto9()
-Jerry.init(3, 7, 12, 10, True, 20, 1, 2, 19) 
+Jerry.init(3, 13, 12, 14, True, 20, 1, 2, 19) 
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
