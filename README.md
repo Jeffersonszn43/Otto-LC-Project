@@ -29,6 +29,8 @@
 
 #### Otto LC Max Movement Software:
 
+##### The Otto LC Max showcase program was created to showcase all of the movements, dancing, and emotions that the robot is capable of doing.
+
 ## Hardware Compatibility
 
 ##### The software we created for both parts of the project was designed to work on the Microcontrollers below:
