@@ -7,9 +7,9 @@ from machine import Pin, ADC, time_pulse_us
 
 # Here we are initializing the Servo and Buzzer pins
 LeftLeg = 3
-RightLeg = 13
+RightLeg = 7
 LeftFoot = 12
-RightFoot = 14
+RightFoot = 10
 Buzzer = 20
 
 # Here is where we are initializing and defining all of the pins of the sensors on the robot
@@ -29,7 +29,7 @@ Orientation = 3
 # Here is where we are initializing the Otto LC Robot (Jerry) along with the 8x8 LED Matrix.
 # The values 1 and 2 are dummy values used to initalize the trigger and echo pins of the Ultrasonic Distance Sensor.
 Jerry = otto9.Otto9()
-Jerry.init(3, 13, 12, 14, True, 20, 1, 2, 19) 
+Jerry.init(3, 7, 12, 10, True, 20, 1, 2, 19) 
 Jerry.initMATRIX(Din, CS, SCLK, Orientation)
 Jerry.home()
 
