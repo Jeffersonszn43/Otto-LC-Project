@@ -97,8 +97,9 @@
 
 ## Acknowledgements
 
-##### All of the software written and our Otto LC designs are based off OttoDIYLib, OttoDIYPython, and Otto LC below:
+##### All of the software written and our Otto LC designs are based off the OttoDIY, OttoDIYLib, OttoDIYPython, and the Otto LC robot platform and libraries below:
 
+- [OttoDIY](https://www.ottodiy.com/)
 - [OttoDIYLib](https://github.com/OttoDIY/OttoDIYLib)
 - [OttoDIYPython](https://github.com/OttoDIY/OttoDIYPython)
 - [Otto LC](https://hackaday.io/project/26244-otto-lc)
