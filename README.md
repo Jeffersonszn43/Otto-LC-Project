@@ -62,7 +62,7 @@
 ## Screenshot
 
 ##### The Otto LC-Jerry robot
-![image](https://github.com/Jeffersonszn43/Otto-LC-Project/blob/main/assets/img/Otto LC-Jerry.jpg)
+![image](https://github.com/Jeffersonszn43/Otto-LC-Project/blob/main/assets/img/Otto_LC-Jerry.jpg)
 
 ## Acknowledgements
 
