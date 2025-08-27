@@ -1,6 +1,6 @@
 ## Otto LC Robotic Control Platform
 
-##### This is a web application that will allow users to control the Otto LC robot that we designed based on the Otto LC robot platform. The web application was built using the SB Admin Bootstrap template. The web application uses Bluetooth Low Energy to allow the robot to connect to the web application allowing users to have control over the robot. The web application allows for:
+##### This is a web application that will allow users to control the Otto LC robot that we designed based on the Otto LC robot platform. The web application was built using the SB Admin Bootstrap template. The web application uses Bluetooth Low Energy to allow the robot to connect to the web application, allowing users to have control over the robot. The web application allows for:
 
 - Direct control using the arrow keys on your keyboard.
 - Dance Mode, where users can select a dance from a predefined list.
@@ -19,13 +19,13 @@
 ##### The project was built into two parts:
 
 - Software for the web application for the control of the Otto LC robot-Jerry.
-- Software that will be built to showcase the basic capabilities that the Otto LC robot is able to do.
+- Software that will showcase the basic capabilities that the Otto LC robot is able to do.
 
-##### The software that was created to allow users to control Jerry using the web application and to showcase the capabilites of the Otto LC-Jerry robot can be found in the `Jerry_Software` folder in the repository, and both were written in MicroPython. 
+##### The software that was created to allow users to control Jerry using the web application and to showcase the capabilities of the Otto LC-Jerry robot can be found in the `Jerry_Software` folder in the repository, and both were written in MicroPython. 
 
 #### Otto LC Jerry Showcase Software:
 
-##### The design of Jerry included a Photoresistor that will be responisble for when Jerry will do it's movements in the showcase program. If the room Jerry is in is dark, then the robot will do a certain gesture and display a certain emotion on the 8x8 LED Matrix included in the design of the robot. When the room Jerry is in is bright, then the robot will do it's walking and dancing movements along with displaying it's different emotions on the LED Matrix, and the robot will do emotional gestures. This program will be `Otto_LC_Jerry.py` in the `Jerry_Software` folder.
+##### The design of Jerry included a Photoresistor that will be responsible for when Jerry will do it's movements in the showcase program. If the room Jerry is in is dark, then the robot will do a certain gesture and display a certain emotion on the 8x8 LED Matrix included in the design of the robot. When the room Jerry is in is bright, then the robot will do it's walking and dancing movements along with displaying it's different emotions on the LED Matrix, and the robot will do emotional gestures. This program will be `Otto_LC_Jerry.py` in the `Jerry_Software` folder.
 
 #### Otto LC Jerry Web Application Software:
 
@@ -42,7 +42,7 @@
 
 ## Setup
 
-##### This section will contain information on how to setup your environment for working with the robot. The instruction are shown below:
+##### This section will contain information on how to setup your environment for working with the robot:
 
 1. First, you have to install the Thonny Python IDE to work with the Otto LC Jerry robot to run MicroPython programs on the robot. You can download the IDE using this link: [Thonny](https://thonny.org/)
 2. Once you have installed Thonny, you must make sure you downloaded the OttoDIYPython library zip file from below that contains all of the files that were built for the library. Note: Since the library was designed to run on the ESP8266 Microcontroller, some of the files had to be modified to work with the Pi Pico Microcontrollers. 
