@@ -61,8 +61,8 @@
 
 ## Screenshot
 
-##### The Otto LC - Max and Jerry robots
-![image](https://github.com/Jeffersonszn43/Otto-LC-Project/blob/main/assets/img/Otto%20LC-Jerry.jpg)
+##### The Otto LC-Jerry robot
+![image](https://github.com/Jeffersonszn43/Otto-LC-Project/blob/main/assets/img/Otto LC-Jerry.jpg)
 
 ## Acknowledgements
 
