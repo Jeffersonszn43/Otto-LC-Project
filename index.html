@@ -1,6 +1,6 @@
 <!-- Created by: Jefferson Charles and Corey Chang-->
 
-<!-- This is the software that is written to create the control platform for Robot 1 (Max) -->
+<!-- This is the software that is written to create the control platform for the Otto LC-Jerry robot -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,20 +19,12 @@
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark d-flex">
             <!-- This is the home button-->
-            <a class="navbar-brand ps-3" href="index.html">Next Generation Otto LC</a>
+            <a class="navbar-brand ps-3" href="index.html">Next Generation of Otto LC</a>
 
             <!-- This is to toggle the side bar menu-->
             <button class="btn btn-link btn-sm ms-auto me-3" id="sidebarToggle" href="#!"> 
                 <i class="fas fa-bars"></i>
             </button>
-
-            <!-- This is the search bar-->
-            <form class="d-none d-md-inline-block form-inline me-0 me-md-3 my-2 my-md-0">
-                <div class="input-group">
-                    <input class="form-control" type="text" placeholder="Search" id="searchInput" aria-label="Search" aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
-                </div>
-            </form>
 
         </nav>
         <div id="layoutSidenav">
@@ -42,39 +34,29 @@
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Robot Selection</div>
 
-                            <!-- Users will get the choice of choosing to control both of the robots separately or both robots at the same time. -->
+                            <!-- Here users are able to select Jerry -->
                             <a class="nav-link" href="index.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-robot"></i></div>
-                                Max
-                            </a>
-
-                            <a class="nav-link" href="Robot2.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-robot"></i></div>
                                 Jerry
-                            </a>
-
-                            <a class="nav-link" href="BothRobots.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-robot"></i></div>
-                                Both Robots
-                            </a>                            
+                            </a>                          
                             
                 </nav>
             </div>
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4">
-                        <h1 class="mt-4">Max Control</h1>
+                        <h1 class="mt-4">Jerry Control</h1>
 
                         <div class="mb-3">
-                            <!-- Here is the Bluetooth button users will click to connect to Max -->
-                            <button id="connectButton" class="btn btn-success">Connect to Max</button>
-
-                            <!-- This will be the disconnect button users will use to disconnect from Max -->
-                            <button id="disconnectButton" class="btn btn-danger">Disconnect from Max</button>
-                            <p id="connectionStatus">Max Connection Status:</p>
+                            <!-- Here is the Bluetooth button users will click to connect to Jerry -->
+                            <button id="connectButton" class="btn btn-success">Connect to Jerry</button>
+                            
+                            <!-- This will be the disconnect button users will use to disconnect from Jerry -->
+                            <button id="disconnectButton" class="btn btn-danger">Disconnect from Jerry</button>
+                            <p id="connectionStatus">Jerry Connection Status:</p>
                         </div>
 
-                        <!-- Here are the different control options users are able to choose from to interact with the Otto LC robot (Max) -->
+                        <!-- Here are the different control options users are able to choose from to interact with the Otto LC robot (Jerry) -->
                         <div class="mb-3 control-options">
                             <h4>Control Options</h4>
                                 <button class="btn btn-primary" id="directControl">Direct Control Mode</button>
@@ -83,12 +65,12 @@
                                 <button class="btn btn-danger" id="interruptButton">Interrupt</button>  
                         </div>
 
-                        <div class="mb-3 keyboard-control" id="keyboardControl" style="display:none;">
-                            <h4>Keyboard Controls</h4>
-                            <p>Use "WSAD" to control the movements of Max</p>
+                        <div class="mb-3 arrow-control" id="arrowControl" style="display:none;">
+                            <h4>Arrow Controls</h4>
+                            <p>Use the arrow keys on your keyboard to control the movements of Jerry</p>
                         </div>
 
-                        <!-- Here are the different dance selections that users are able to choose from to make Max dance while in dance mode -->
+                        <!-- Here are the different dance selections that users are able to choose from to make Jerry dance while in dance mode -->
                         <div class="mb-3 dance-selection" id="danceSelection" style="display:none;">
                             <h4>Dance Selection</h4>
                                 <select id="danceList" class="form-select" style="max-width:300px;">
@@ -101,13 +83,12 @@
                                 <button class="btn btn-info mt-2" id="startDance">Start Dance</button>
                         </div>
                         
-                        <!-- Here is where different status conditons of the Otto LC robot (Max) will be displayed -->
+                        <!-- Here is where different status conditons of the Otto LC-Jerry robot will be displayed -->
                         <div class="mb-3 status-dashboard">
                             <h4>Robot Status</h4>
                                 <p id="modeStatus">Mode:</p>
                                 <p id="emotionStatus">Emotional Status:</p>
-                                <!-- This feature is currently not functional, but could be implemented in the future -->
-                                <!--<p id="lightStatus">Room Light Level:</p> -->
+                                <p id="lightStatus">Room Light Level:</p>
                                 <p id="objectStatus">Obstacle Detection:</p>
                                 <p id="danceStatus">Current Dance:</p>
                         </div>
@@ -124,63 +105,6 @@
                 </footer>
             </div>
         </div>
-
-        <!-- Here is where the search feature where users are able to search to go to the robot they want to control is implemented-->
-        <script>
-            function search()
-            {
-                var searchInput = document.getElementById("searchInput").value.toLowerCase();
-
-                if (searchInput == "max")
-                {
-                    window.location.href = "index.html";
-                }
-                else if(searchInput == "jerry")
-                {
-                    window.location.href = "Robot2.html";
-
-                }
-                else if (searchInput == "both robots")
-                {
-                    window.location.href = "BothRobots.html";
-                }
-                else if (searchInput == "home")
-                {
-                    window.location.href = "index.html";
-                }
-                else
-                {
-                    const Toast = Swal.mixin({
-                    toast: true,
-                    position: "top-end",
-                    showConfirmButton: false,
-                    timer: 5000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                      toast.onmouseenter = Swal.stopTimer;
-                      toast.onmouseleave = Swal.resumeTimer;
-                    }
-                    });
-                    Toast.fire({
-                      icon: "error",
-                      title: "Please enter Max, Jerry, Both Robots, or home into the search bar."
-                    });
-                }
-
-            }
-
-            // This line indicates that the search bar needs the user to click on the search button to make sure that their searches get processed as a search.
-            document.getElementById("btnNavbarSearch").addEventListener("click", search);
-
-            // Here we are making sure that users are also able to confirm their searches with the enter button on their keyboard.
-            document.getElementById("searchInput").addEventListener("keydown", function(event) {
-                if (event.key === "Enter")
-                {
-                    event.preventDefault(); // This prevents form submission when inside of a form allowing the search function to execute.
-                    search();
-                }
-            });
-        </script>
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="js/Main_scripts.js"></script>
